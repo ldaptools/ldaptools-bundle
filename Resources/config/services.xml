@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="ldap_tools.ldap_manager.class">LdapTools\LdapManager</parameter>
+        <parameter key="ldap_tools.configuration.class">LdapTools\Configuration</parameter>
+        <parameter key="ldap_tools.event_dispatcher.class">LdapTools\Event\SymfonyEventDispatcher</parameter>
+        <parameter key="ldap_tools.security.firewall.ldap_form_login_listener.class">LdapTools\Bundle\LdapToolsBundle\Security\Firewall\LdapFormLoginListener</parameter>
+        <parameter key="ldap_tools.security.user.ldap_user_provider.class">LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider</parameter>
+        <parameter key="ldap_tools.security.authentication.ldap_authentication_provider.class">LdapTools\Bundle\LdapToolsBundle\Security\Authentication\Provider\LdapAuthenticationProvider</parameter>
+        <parameter key="ldap_tools.cache_warmer.ldap_tools_cache_warmer.class">LdapTools\Bundle\LdapToolsBundle\CacheWarmer\LdapToolsCacheWarmer</parameter>
+        <parameter key="ldap_tools.security.user.ldap_user_checker.class">LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker</parameter>
+        <parameter key="ldap_tools.form.type.ldap_object.class">LdapTools\Bundle\LdapToolsBundle\Form\Type\LdapObjectType</parameter>
+        <parameter key="ldap_tools.doctrine.event_listener.ldap_object.class">LdapTools\Bundle\LdapToolsBundle\Doctrine\Subscriber\LdapObjectSubscriber</parameter>
+        <parameter key="ldap_tools.log.logger_chain.class">LdapTools\Log\LoggerChain</parameter>
+        <parameter key="ldap_tools.log.logger.class">LdapTools\Bundle\LdapToolsBundle\Log\LdapLogger</parameter>
+        <parameter key="ldap_tools.log.profiler.class">LdapTools\Bundle\LdapToolsBundle\Log\LdapProfilerLogger</parameter>
+        <parameter key="ldap_tools.data_collector.class">LdapTools\Bundle\LdapToolsBundle\DataCollector\LdapToolsDataCollector</parameter>
+    </parameters>
+
+    <services>
+        <service id="ldap_tools.configuration" class="%ldap_tools.configuration.class%">
+            <call method="setEventDispatcher">
+                <argument type="service" id="ldap_tools.event_dispatcher"/>
+            </call>
+        </service>
+
+        <service id="ldap_tools.event_dispatcher" class="%ldap_tools.event_dispatcher.class%"/>
+
+        <service id="ldap_tools.ldap_manager" class="%ldap_tools.ldap_manager.class%">
+            <argument type="service" id="ldap_tools.configuration"/>
+        </service>
+
+        <service id="ldap_tools.log.logger_chain" class="%ldap_tools.log.logger_chain.class%" />
+
+        <service id="ldap_tools.log.profiler" class="%ldap_tools.log.profiler.class%" />
+
+        <service id="ldap_tools.log.logger" class="%ldap_tools.log.logger.class%" public="false">
+            <tag name="monolog.logger" channel="ldaptools" />
+            <argument type="service" id="logger" on-invalid="null" />
+            <argument type="service" id="debug.stopwatch" on-invalid="null" />
+        </service>
+
+        <service id="data_collector.ldap_tools" class="%ldap_tools.data_collector.class%" public="false">
+            <tag name="data_collector" template="@LdapTools/Collector/ldaptools.html.twig" id="ldaptools" />
+            <argument type="service" id="ldap_tools.log.profiler" />
+            <argument type="service" id="ldap_tools.ldap_manager" />
+        </service>
+
+        <service id="ldap_tools.security.user.ldap_user_checker" class="%ldap_tools.security.user.ldap_user_checker.class%" />
+
+        <service id="ldap_tools.security.firewall.ldap_form_login_listener"
+                 class="%ldap_tools.security.firewall.ldap_form_login_listener.class%"
+                 parent="security.authentication.listener.abstract"
+                 abstract="true" />
+
+        <service id="ldap_tools.security.user.ldap_user_provider" class="%ldap_tools.security.user.ldap_user_provider.class%">
+            <argument type="service" id="ldap_tools.ldap_manager"/>
+            <argument>%ldap_tools.security.default_attributes%</argument>
+            <argument>%ldap_tools.security.roles%</argument>
+            <argument>%ldap_tools.security.check_groups_recursively%</argument>
+            <call method="setAttributes">
+                <argument>%ldap_tools.security.additional_attributes%</argument>
+            </call>
+            <call method="setUserClass">
+                <argument>%ldap_tools.security.user%</argument>
+            </call>
+            <call method="setDefaultRole">
+                <argument>%ldap_tools.security.default_role%</argument>
+            </call>
+        </service>
+
+        <service id="ldap_tools.security.authentication.ldap_authentication_provider" class="%ldap_tools.security.authentication.ldap_authentication_provider.class%">
+            <argument/> <!-- Provider Key -->
+            <argument>%security.authentication.hide_user_not_found%</argument>
+            <argument type="service" id="ldap_tools.security.user.ldap_user_provider" />
+            <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
+            <argument type="service" id="ldap_tools.ldap_manager" />
+        </service>
+
+        <service id="ldap_tools.form.type.ldap_object" class="%ldap_tools.form.type.ldap_object.class%">
+            <argument type="service" id="ldap_tools.ldap_manager" />
+            <tag name="form.type" alias="ldap_object" />
+        </service>
+
+        <!-- The added tag for the cache warmer is added depending on the config within the extension -->
+        <service id="ldap_tools.cache_warmer.ldap_tools_cache_warmer" class="%ldap_tools.cache_warmer.ldap_tools_cache_warmer.class%">
+            <argument type="service" id="ldap_tools.ldap_manager" />
+            <argument type="service" id="ldap_tools.configuration" />
+        </service>
+
+        <!-- The added tag for the doctrine event subscriber is added depending on the config within the extension -->
+        <service id="ldap_tools.doctrine.event_listener.ldap_object" class="%ldap_tools.doctrine.event_listener.ldap_object.class%">
+            <argument type="service" id="annotation_reader" />
+            <argument type="service" id="ldap_tools.ldap_manager" />
+        </service>
+    </services>
+</container>

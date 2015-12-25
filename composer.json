@@ -1,0 +1,40 @@
+{
+    "name": "ldaptools/ldaptools-bundle",
+    "type": "symfony-bundle",
+    "description": "Provides easy LDAP integration for Symfony via LdapTools.",
+    "keywords": [
+        "LDAP",
+        "Active Directory",
+        "OpenLDAP"
+    ],
+    "homepage": "http://github.com/ldaptools/LdapToolsBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chad Sikorra",
+            "email": "Chad.Sikorra@gmail.com",
+            "homepage": "http://www.chadsikorra.com"
+        }
+    ],
+    "require": {
+        "ldaptools/ldaptools": ">=0.17",
+        "symfony/framework-bundle": "~2.3|~3.0"
+    },
+    "require-dev": {
+        "fabpot/php-cs-fixer": "~1.0",
+        "phpspec/phpspec": "~2.4",
+        "akeneo/phpspec-skip-example-extension": "~1.2",
+        "doctrine/orm": "~2.4",
+        "symfony/form": "~2.3|~3.0",
+        "symfony/security-bundle": "~2.3|~3.0"
+    },
+    "suggest": {
+        "doctrine/doctrine-bundle": "For LDAP object type integration in Doctrine."
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+        "psr-4": {"LdapTools\\Bundle\\LdapToolsBundle\\": ""}
+    }
+}

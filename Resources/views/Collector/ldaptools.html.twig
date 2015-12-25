@@ -1,0 +1,165 @@
+{% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
+
+{% import _self as helper %}
+
+{% block toolbar %}
+    {% set profiler_markup_version = profiler_markup_version|default(1) %}
+    {% set icon %}
+        {% if profiler_markup_version == 1 %}
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTFCMEY0N0Q5NDk1MTFFNTk3MDFGQjFGNDc5ODY0MTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTFCMEY0N0U5NDk1MTFFNTk3MDFGQjFGNDc5ODY0MTQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MUIwRjQ3Qjk0OTUxMUU1OTcwMUZCMUY0Nzk4NjQxNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5MUIwRjQ3Qzk0OTUxMUU1OTcwMUZCMUY0Nzk4NjQxNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PizcUhYAAASiSURBVHjahFbJT9tXEB4v2OxrKfsuKAhMALOIAwGL5AAhRWovFKqq6oV/gRtcqhyiSrlFQiiISw+gSgEBt0gQQIgDixCrjFkEZhP7ZhZjd75pnmUcQp80GP9+b2a++eab96xva2sjtVwuF93d3Rl1Op0pMDCwOCgoKMNoNH6n1+vVO8fFxYX16upq6fb2dkar1e7gnUajoW8tPf643W5ih+/DwsJ+T09P/zk2NvYZBzY6nU6C4T0MwQwGgyQ7Ozuzr6+vD29ubn7gEJ/w7tEEX5wbLRbLXzExMbGLi4s0PDxMu7u7dH19Tff39xIcixGTv78/hYaGUnJyckJOTk5jeXl548jIyN87Ozu/cZJ73wS6ioqKF3V1dR+5/ODOzk5aWFig8/NzCYqATJcgh+F/oL+8vCRGTtPT03RyckI1NTUmrsbJLHz2pUvLaF4lJCRQT0+PoGXu6Sle8RyJmEHZOzMzQ7Ozs5SUlPQj/H2Xlpt2dnh4SFVVVegD3dzcCMqnFqpDb1BJYmIiZWVlgdJzVPxVDzirq6+vj6qrq6m5uZmmpqZobW2NTk9PJRHMuxrVh7i4OMrNzSXug1RxcHDg+qK0hwkYgXFra4v6+/spPj6eMjMzqaioSDayHKUqNBu0gRaWrnyCDm4s9fb2SiURERF+ZrNZxwAe8KThps5yc01whBNKR7CQkBDhOCAgQChBFUjKlEpiJMUzRVdlZeVlbW3tDxzT/qACPz+/z6WlpSaUiQWdwxGoEExJVNGlVMV+8j0/P5/Cw8OlF7x+YnvP5vTIlF+aWQEWbIQzkCn9q2bjE9oHhQAAGeMZ+ra3t0fd3d00ODhomJubqykoKCjkyv9hN6FKz5zpJiYmwCHxFFNZWZk4Az0SIRgC5+XleRrOUyxg5ufnqauri4KDg+X52NgYALxubW39lb9/UJN8p1BNTk6KSuAAxKCBEUni1dVVT0WRkZGE2eno6JCKlDzhx1XQ0dHR86ioKEmgLSkpeQak2ITN4NfhcIhCEBRJ7Pb/+gbUMMwNfADCe2bwPxTGtu+RNVMSD6V46xflKr3jHVTiO9nY39TUJO8hCIDCkDY0NLi5EhvCCChWUGJhYaEFG3CuIJhKAsfU1FQpHc4qCZID7fj4ONXX18tsoE8cHIk1AwMDr9LS0irZ76MuIyPDwiVXZWdny5BBcgiEASsuLhb+MbXokaoEwRAUNOLkjY6Olr6Mjo7KwHIfNCsrK2lQmZ5pcEMVQ0NDMlwIhgbyCSn87+/vC1o+niUB0KMyHOdQHCpsaWkRWYN/UAZbWlpCopdov79qMBq3vLwsRzaQAiGCHx8fk81mo+3tbdrY2PA8R/MBhqdYmg9AaiGh1WoN13pPnTqKUS4o8j7gsPBMTbNSFY4N0Ksm3jsWH4AB8Gxns3ofxepieewu8F1IiiFVJ6kyiII/DbhIN9kq2N6w/QLKEOj/7gSVEH2BMFgspO5l+EIEfPgtqJt6j+0Ptj/ZXrNjHTesGs1/6heDulZNJtNYe3v7e/6ubhwNP3fIjwEfHxtvesdI3qWkpLzlXxlm/q57KgFr3c4CaQXNj4H5V4ABAFqBpDvjWvRIAAAAAElFTkSuQmCC" />
+            <span class="sf-toolbar-value sf-toolbar-status {% if collector.operations|length > 10 %}sf-toolbar-status-yellow{% endif %}">{{ collector.operations|length }}</span>
+            {% if collector.operations|length > 0 %}
+                <span class="sf-toolbar-info-piece-additional-detail">in {{ collector.time|round }} ms</span>
+            {% endif %}
+            {% if collector.errors|length > 0 %}
+                <span class="sf-toolbar-info-piece-additional sf-toolbar-status sf-toolbar-status-red">{{ collector.errors|length }}</span>
+            {% endif %}
+        {% elseif collector.operations|length > 0 or collector.errors|length > 0 %}
+            {% set status = collector.errors|length > 0 ? 'red' : collector.operations|length > 10 ? 'yellow' %}
+
+            <span class="icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTFCMEY0N0Q5NDk1MTFFNTk3MDFGQjFGNDc5ODY0MTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTFCMEY0N0U5NDk1MTFFNTk3MDFGQjFGNDc5ODY0MTQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MUIwRjQ3Qjk0OTUxMUU1OTcwMUZCMUY0Nzk4NjQxNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5MUIwRjQ3Qzk0OTUxMUU1OTcwMUZCMUY0Nzk4NjQxNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PizcUhYAAASiSURBVHjahFbJT9tXEB4v2OxrKfsuKAhMALOIAwGL5AAhRWovFKqq6oV/gRtcqhyiSrlFQiiISw+gSgEBt0gQQIgDixCrjFkEZhP7ZhZjd75pnmUcQp80GP9+b2a++eab96xva2sjtVwuF93d3Rl1Op0pMDCwOCgoKMNoNH6n1+vVO8fFxYX16upq6fb2dkar1e7gnUajoW8tPf643W5ih+/DwsJ+T09P/zk2NvYZBzY6nU6C4T0MwQwGgyQ7Ozuzr6+vD29ubn7gEJ/w7tEEX5wbLRbLXzExMbGLi4s0PDxMu7u7dH19Tff39xIcixGTv78/hYaGUnJyckJOTk5jeXl548jIyN87Ozu/cZJ73wS6ioqKF3V1dR+5/ODOzk5aWFig8/NzCYqATJcgh+F/oL+8vCRGTtPT03RyckI1NTUmrsbJLHz2pUvLaF4lJCRQT0+PoGXu6Sle8RyJmEHZOzMzQ7Ozs5SUlPQj/H2Xlpt2dnh4SFVVVegD3dzcCMqnFqpDb1BJYmIiZWVlgdJzVPxVDzirq6+vj6qrq6m5uZmmpqZobW2NTk9PJRHMuxrVh7i4OMrNzSXug1RxcHDg+qK0hwkYgXFra4v6+/spPj6eMjMzqaioSDayHKUqNBu0gRaWrnyCDm4s9fb2SiURERF+ZrNZxwAe8KThps5yc01whBNKR7CQkBDhOCAgQChBFUjKlEpiJMUzRVdlZeVlbW3tDxzT/qACPz+/z6WlpSaUiQWdwxGoEExJVNGlVMV+8j0/P5/Cw8OlF7x+YnvP5vTIlF+aWQEWbIQzkCn9q2bjE9oHhQAAGeMZ+ra3t0fd3d00ODhomJubqykoKCjkyv9hN6FKz5zpJiYmwCHxFFNZWZk4Az0SIRgC5+XleRrOUyxg5ufnqauri4KDg+X52NgYALxubW39lb9/UJN8p1BNTk6KSuAAxKCBEUni1dVVT0WRkZGE2eno6JCKlDzhx1XQ0dHR86ioKEmgLSkpeQak2ITN4NfhcIhCEBRJ7Pb/+gbUMMwNfADCe2bwPxTGtu+RNVMSD6V46xflKr3jHVTiO9nY39TUJO8hCIDCkDY0NLi5EhvCCChWUGJhYaEFG3CuIJhKAsfU1FQpHc4qCZID7fj4ONXX18tsoE8cHIk1AwMDr9LS0irZ76MuIyPDwiVXZWdny5BBcgiEASsuLhb+MbXokaoEwRAUNOLkjY6Olr6Mjo7KwHIfNCsrK2lQmZ5pcEMVQ0NDMlwIhgbyCSn87+/vC1o+niUB0KMyHOdQHCpsaWkRWYN/UAZbWlpCopdov79qMBq3vLwsRzaQAiGCHx8fk81mo+3tbdrY2PA8R/MBhqdYmg9AaiGh1WoN13pPnTqKUS4o8j7gsPBMTbNSFY4N0Ksm3jsWH4AB8Gxns3ofxepieewu8F1IiiFVJ6kyiII/DbhIN9kq2N6w/QLKEOj/7gSVEH2BMFgspO5l+EIEfPgtqJt6j+0Ptj/ZXrNjHTesGs1/6heDulZNJtNYe3v7e/6ubhwNP3fIjwEfHxtvesdI3qWkpLzlXxlm/q57KgFr3c4CaQXNj4H5V4ABAFqBpDvjWvRIAAAAAElFTkSuQmCC" />
+            {% if collector.operations|length == 0 and collector.errors|length > 0 %}
+                <span class="sf-toolbar-value">{{ collector.errors|length }}</span>
+                <span class="sf-toolbar-label">errors</span>
+            {% else %}
+                <span class="sf-toolbar-value">{{ collector.operations|length }}</span>
+                <span class="sf-toolbar-info-piece-additional-detail">
+                    <span class="sf-toolbar-label">in</span>
+                    <span class="sf-toolbar-value">{{ collector.time|round }}</span>
+                    <span class="sf-toolbar-label">ms</span>
+                </span>
+            {% endif %}
+        {% endif %}
+    {% endset %}
+
+    {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <b>LDAP Operations</b>
+            <span class="sf-toolbar-status">{{ collector.operations|length }}</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Elapsed Time</b>
+            <span>{{ collector.time|round }} ms</span>
+        </div>
+        <div class="sf-toolbar-info-piece">
+            <b>Errors</b>
+            <span class="sf-toolbar-status {{ collector.errors|length > 0 ? 'sf-toolbar-status-red' : '' }}">{{ collector.errors|length }}</span>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { link: profiler_url, status: status|default('') }) }}
+{% endblock %}
+
+{% block menu %}
+    {% set profiler_markup_version = profiler_markup_version|default(1) %}
+    {# This left-hand menu appears when using the full-screen profiler. #}
+    {% if collector.errors|length > 0 %}
+        {% set label_status = "error" %}
+    {% elseif collector.operations|length > 10 %}
+        {% set label_status = "warning" %}
+    {% else %}
+        {% set label_status = "normal" %}
+    {% endif %}
+    <span class="label label-status-{{ label_status }} {{ collector.operations|length == 0 ? 'disabled' }}">
+        <span class="icon"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTFCMEY0N0Q5NDk1MTFFNTk3MDFGQjFGNDc5ODY0MTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTFCMEY0N0U5NDk1MTFFNTk3MDFGQjFGNDc5ODY0MTQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5MUIwRjQ3Qjk0OTUxMUU1OTcwMUZCMUY0Nzk4NjQxNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5MUIwRjQ3Qzk0OTUxMUU1OTcwMUZCMUY0Nzk4NjQxNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PizcUhYAAASiSURBVHjahFbJT9tXEB4v2OxrKfsuKAhMALOIAwGL5AAhRWovFKqq6oV/gRtcqhyiSrlFQiiISw+gSgEBt0gQQIgDixCrjFkEZhP7ZhZjd75pnmUcQp80GP9+b2a++eab96xva2sjtVwuF93d3Rl1Op0pMDCwOCgoKMNoNH6n1+vVO8fFxYX16upq6fb2dkar1e7gnUajoW8tPf643W5ih+/DwsJ+T09P/zk2NvYZBzY6nU6C4T0MwQwGgyQ7Ozuzr6+vD29ubn7gEJ/w7tEEX5wbLRbLXzExMbGLi4s0PDxMu7u7dH19Tff39xIcixGTv78/hYaGUnJyckJOTk5jeXl548jIyN87Ozu/cZJ73wS6ioqKF3V1dR+5/ODOzk5aWFig8/NzCYqATJcgh+F/oL+8vCRGTtPT03RyckI1NTUmrsbJLHz2pUvLaF4lJCRQT0+PoGXu6Sle8RyJmEHZOzMzQ7Ozs5SUlPQj/H2Xlpt2dnh4SFVVVegD3dzcCMqnFqpDb1BJYmIiZWVlgdJzVPxVDzirq6+vj6qrq6m5uZmmpqZobW2NTk9PJRHMuxrVh7i4OMrNzSXug1RxcHDg+qK0hwkYgXFra4v6+/spPj6eMjMzqaioSDayHKUqNBu0gRaWrnyCDm4s9fb2SiURERF+ZrNZxwAe8KThps5yc01whBNKR7CQkBDhOCAgQChBFUjKlEpiJMUzRVdlZeVlbW3tDxzT/qACPz+/z6WlpSaUiQWdwxGoEExJVNGlVMV+8j0/P5/Cw8OlF7x+YnvP5vTIlF+aWQEWbIQzkCn9q2bjE9oHhQAAGeMZ+ra3t0fd3d00ODhomJubqykoKCjkyv9hN6FKz5zpJiYmwCHxFFNZWZk4Az0SIRgC5+XleRrOUyxg5ufnqauri4KDg+X52NgYALxubW39lb9/UJN8p1BNTk6KSuAAxKCBEUni1dVVT0WRkZGE2eno6JCKlDzhx1XQ0dHR86ioKEmgLSkpeQak2ITN4NfhcIhCEBRJ7Pb/+gbUMMwNfADCe2bwPxTGtu+RNVMSD6V46xflKr3jHVTiO9nY39TUJO8hCIDCkDY0NLi5EhvCCChWUGJhYaEFG3CuIJhKAsfU1FQpHc4qCZID7fj4ONXX18tsoE8cHIk1AwMDr9LS0irZ76MuIyPDwiVXZWdny5BBcgiEASsuLhb+MbXokaoEwRAUNOLkjY6Olr6Mjo7KwHIfNCsrK2lQmZ5pcEMVQ0NDMlwIhgbyCSn87+/vC1o+niUB0KMyHOdQHCpsaWkRWYN/UAZbWlpCopdov79qMBq3vLwsRzaQAiGCHx8fk81mo+3tbdrY2PA8R/MBhqdYmg9AaiGh1WoN13pPnTqKUS4o8j7gsPBMTbNSFY4N0Ksm3jsWH4AB8Gxns3ofxepieewu8F1IiiFVJ6kyiII/DbhIN9kq2N6w/QLKEOj/7gSVEH2BMFgspO5l+EIEfPgtqJt6j+0Ptj/ZXrNjHTesGs1/6heDulZNJtNYe3v7e/6ubhwNP3fIjwEfHxtvesdI3qWkpLzlXxlm/q57KgFr3c4CaQXNj4H5V4ABAFqBpDvjWvRIAAAAAElFTkSuQmCC" /></span>
+        <strong>LdapTools</strong>
+        {% if profiler_markup_version != 1 and collector.errors|length %}
+            {% set panel_count = collector.errors|length %}
+        {% else %}
+            {% set panel_count = collector.operations|length %}
+        {% endif %}
+        {% if panel_count > 0 %}
+            <span class="count">
+                <span>{{ panel_count }}</span>
+            </span>
+        {% endif %}
+    </span>
+{% endblock %}
+
+{% block panel %}
+    {% set profiler_markup_version = profiler_markup_version|default(1) %}
+    <h2>LDAP Operations</h2>
+    {% if profiler_markup_version == 1 %}
+        {% if collector.operations is empty %}
+            <div class="empty">
+                <p>No LDAP operations were performed.</p>
+            </div>
+        {% else %}
+            {{ helper.render_table(collector.operations, profiler_markup_version) }}
+        {% endif %}
+    {% else %}
+        <div class="sf-tabs">
+            <div class="tab">
+                <h3 class="tab-title">All Operations<span class="badge">{{ collector.operations|length }}</span></h3>
+                <div class="tab-content">
+                {% if collector.operations is empty %}
+                    <div class="empty">
+                        <p>No LDAP operations were performed.</p>
+                    </div>
+                {% else %}
+                    {{ helper.render_table(collector.operations, profiler_markup_version) }}
+                {% endif %}
+                </div>
+            </div>
+            <div class="tab">
+                <h3 class="tab-title">Errors<span class="badge">{{ collector.errors|length }}</span></h3>
+                <div class="tab-content">
+                {% if collector.errors is empty %}
+                    <div class="empty">
+                        <p>No operations encountered any errors.</p>
+                    </div>
+                {% else %}
+                    {{ helper.render_table(collector.errors, profiler_markup_version) }}
+                {% endif %}
+                </div>
+            </div>
+            {% for key, values in collector.operationsByDomain %}
+                <div class="tab">
+                    <h3 class="tab-title">{{ key }}<span class="badge">{{ values|length }}</span></h3>
+                    <div class="tab-content">
+                    {% if values is empty %}
+                        <div class="empty">
+                            <p>No operations performed for {{ key }}.</p>
+                        </div>
+                    {% else %}
+                        {{ helper.render_table(values, profiler_markup_version) }}
+                    {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% macro render_table(logs, version) %}
+<table>
+    <tr>
+        <th class="nowrap">#</th>
+        <th class="nowrap">Time</th>
+        <th class="nowrap">Type</th>
+        <th class="nowrap">Domain</th>
+        <th style="width: 100%;">Details</th>
+    </tr>
+
+    {%  for log in logs %}
+    <tr class="{{ version != 1 ? 'status-' }}{{ log.error is null ? 'normal' : 'error' }}">
+        <td class="nowrap">{{ loop.index }}</td>
+        <td class="nowrap">{{ log.duration|round }} ms</td>
+        <td class="nowrap">{{ log.name }}</td>
+        <td class="nowrap">{{ log.domain }}</td>
+        <td>
+            {% for key, value in log.data %}
+            <div>
+                <strong class="font-normal text-small">{{ key }}</strong>: {{ value }}
+            </div>
+            {% endfor %}
+            {% if log.error is not null %}
+                <div>
+                    <strong class="font-normal text-small">Error</strong>: {{ log.error }}
+                </div>
+            {% endif %}
+        </td>
+    </tr>
+    {%  endfor %}
+</table>
+{% endmacro %}
