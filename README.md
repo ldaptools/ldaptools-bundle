@@ -82,7 +82,7 @@ class DefaultController extends Controller
         $users->count();
         foreach ($users as $user) {
             $user->getFirstName();
-            $user->getFirstName();
+            $user->getLastName();
             $user->getUsername();
         }
         
