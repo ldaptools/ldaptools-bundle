@@ -94,3 +94,4 @@ class DefaultController extends Controller
 ### Documentation
 
 * [LDAP Authentication Provider](/Resources/doc/LDAP-Authentication-Provider.md)
+* [LDAP Object Form Type](/Resources/doc/LDAP-Object-Form-Type.md)
