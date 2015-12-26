@@ -14,7 +14,7 @@ The LdapToolsBundle provides easy integration of LDAP for Symfony via [LdapTools
 
 ### Installation
 
-The recommended way to install LdapTools is using [Composer](http://getcomposer.org/download/):
+The recommended way to install the LdapToolsBundle is using [Composer](http://getcomposer.org/download/):
 
 ```bash
 composer require ldaptools/ldaptools-bundle
@@ -66,6 +66,8 @@ ldap_tools:
             servers: ['dc1.foo.bar', 'dc2.foo.bar']
             base_dn: 'dc=foo,dc=bar'
 ```
+
+Domain configuration options are also documented in the [LdapTools documentation](https://github.com/ldaptools/ldaptools/blob/master/docs/en/reference/Main-Configuration.md#domain-section).
 
 Then in your controller you can use the `ldap_tools.ldap_manager` service to query/modify/create LDAP objects...
 
