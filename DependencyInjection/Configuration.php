@@ -128,6 +128,8 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('server_selection')
                         ->info('Determines how the LDAP server is selected. Can be "order" or "random".')->end()
                     ->scalarNode('encoding')->end()
+                    ->scalarNode('schema_name')
+                        ->info('The schema name to use for this domain')->end()
                     ->scalarNode('bind_format')
                         ->info('Set to a string that determines where the username is placed in a bind attempt: %%username%%,ou=users,dc=foo,dc=bar')->end()
                     ->arrayNode('ldap_options')
