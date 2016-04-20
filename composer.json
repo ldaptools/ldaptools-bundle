@@ -5,7 +5,8 @@
     "keywords": [
         "LDAP",
         "Active Directory",
-        "OpenLDAP"
+        "OpenLDAP",
+        "Microsoft Exchange"
     ],
     "homepage": "http://github.com/ldaptools/LdapToolsBundle",
     "license": "MIT",
@@ -22,7 +23,7 @@
     },
     "require-dev": {
         "fabpot/php-cs-fixer": "~1.0",
-        "phpspec/phpspec": "~2.4",
+        "phpspec/phpspec": "~2.5",
         "akeneo/phpspec-skip-example-extension": "~1.2",
         "doctrine/orm": "~2.4",
         "symfony/form": "~2.3|~3.0",
