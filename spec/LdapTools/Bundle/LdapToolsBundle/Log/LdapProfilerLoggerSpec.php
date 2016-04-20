@@ -33,8 +33,8 @@ class LdapProfilerLoggerSpec extends ObjectBehavior
     {
         $ops = [
             (new LogOperation(new AddOperation()))->setDomain('foo.bar'),
-            (new LogOperation(new DeleteOperation()))->setDomain('foo.bar'),
-            (new LogOperation(new BatchModifyOperation()))->setDomain('example.local'),
+            (new LogOperation(new DeleteOperation('foo')))->setDomain('foo.bar'),
+            (new LogOperation(new BatchModifyOperation('foo')))->setDomain('example.local'),
         ];
         /** @var LogOperation $op */
         foreach ($ops as $op) {
@@ -55,7 +55,7 @@ class LdapProfilerLoggerSpec extends ObjectBehavior
     {
         $ops = [
             (new LogOperation(new AddOperation()))->setDomain('foo.bar'),
-            (new LogOperation(new BatchModifyOperation()))->setDomain('example.local'),
+            (new LogOperation(new BatchModifyOperation('foo')))->setDomain('example.local'),
         ];
         /** @var LogOperation $op */
         foreach ($ops as $op) {
@@ -69,7 +69,7 @@ class LdapProfilerLoggerSpec extends ObjectBehavior
     function it_should_be_able_to_get_operations_with_errors()
     {
         $op1 = (new LogOperation(new AddOperation()))->setDomain('foo.bar')->setError('foo');
-        $op2 = (new LogOperation(new BatchModifyOperation()))->setDomain('example.local');
+        $op2 = (new LogOperation(new BatchModifyOperation('foo')))->setDomain('example.local');
         $ops = [
            $op1,
            $op2,

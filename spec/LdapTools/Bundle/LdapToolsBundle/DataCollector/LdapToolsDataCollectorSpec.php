@@ -46,7 +46,7 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
 
         // Add some log data...
         $addOperation = (new AddOperation())->setAttributes(['username' => 'foo', 'unicodePwd' => 'bar']);
-        $deleteOperation = (new DeleteOperation())->setDn('foo');
+        $deleteOperation = new DeleteOperation('foo');
 
         $addLog = new LogOperation($addOperation);
         $addLog->setDomain('foo.bar');
@@ -163,6 +163,7 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
                 'unicodePwd' => LdapUtilities::MASK,
             ], true),
             'Server' => null,
+            "Controls" => "array (\n)",
         ]);
     }
 

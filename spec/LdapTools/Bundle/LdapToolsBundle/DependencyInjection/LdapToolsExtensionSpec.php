@@ -74,6 +74,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             'domains' => [
                 'example.local' => [
                     'domain_name' => 'example.local',
+                    'schema_name' => 'foo',
                     'servers' => ['foo'],
                     'username' => 'foo',
                     'password' => 'bar',

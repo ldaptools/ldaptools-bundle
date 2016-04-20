@@ -48,11 +48,11 @@ class LdapLoggerSpec extends ObjectBehavior
 
     function it_should_call_the_stopwatch_and_logger_on_start()
     {
-        $log = new LogOperation((new DeleteOperation())->setDn('foo')->setServer('foo'));
+        $log = new LogOperation((new DeleteOperation('foo'))->setServer('foo'));
         $log->setDomain('foo');
         $this->stopwatch->start('ldaptools', strtolower($log->getOperation()->getName()))->shouldBeCalled();
         $this->logger->debug(
-            '(foo on foo) Start Delete Operation - DN: foo'
+            "(foo on foo) Start Delete Operation - DN: foo, Controls: array (\n)"
         )->shouldBeCalled();
 
         $this->start($log);
@@ -60,7 +60,7 @@ class LdapLoggerSpec extends ObjectBehavior
 
     function it_should_call_the_stopwatch_and_logger_on_stop()
     {
-        $log = new LogOperation((new DeleteOperation())->setDn('foo')->setServer('bar'));
+        $log = new LogOperation((new DeleteOperation('foo'))->setServer('bar'));
         $log->setDomain('example.local');
         $log->start();
         $log->stop();
@@ -75,7 +75,7 @@ class LdapLoggerSpec extends ObjectBehavior
 
     function it_should_not_call_the_stopwatch_or_logger_when_they_are_not_used()
     {
-        $log = new LogOperation((new DeleteOperation())->setDn('foo'));
+        $log = new LogOperation(new DeleteOperation('foo'));
         $this->beConstructedWith(null, null);
 
         $this->logger->debug(Argument::any(), Argument::any())->shouldNotBeCalled();
@@ -88,7 +88,7 @@ class LdapLoggerSpec extends ObjectBehavior
 
     function it_should_call_the_logger_error_method_when_the_log_contains_an_error()
     {
-        $log = new LogOperation((new DeleteOperation())->setDn('foo')->setServer('bar'));
+        $log = new LogOperation((new DeleteOperation('foo'))->setServer('bar'));
         $log->setError('foo');
         $log->setDomain('foo.bar');
         $log->start()->stop();
