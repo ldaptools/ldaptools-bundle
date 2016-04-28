@@ -48,13 +48,9 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
         if (!empty($attrMap)) {
             $this->attrMap = array_merge($this->attrMap, $attrMap);
         }
-        parent::__construct(
-            $ldapObject->toArray(),
-            $ldapObject->class,
-            $ldapObject->category,
-            $ldapObject->type
-        );
+        parent::__construct(...$this->getParentArgs($ldapObject));
     }
+
     /**
      * {@inheritdoc}
      */
@@ -233,5 +229,25 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
     public function __toString()
     {
         return (string) $this->get($this->attrMap['stringRepresentation']);
+    }
+
+    /**
+     * Temporary BC method for LdapObject construction.
+     * 
+     * @todo remove this at some point. This is to check for instances where the class/category was in the constructor.
+     * @param LdapObject $ldapObject
+     * @return array
+     */
+    protected function getParentArgs(LdapObject $ldapObject)
+    {
+        $constructor = (new \ReflectionClass(get_parent_class()))->getConstructor();
+        
+        if ($constructor->getNumberOfParameters() == 2) {
+            $args = [$ldapObject->toArray(), $ldapObject->getType()];
+        } else {
+            $args = [$ldapObject->toArray(), [], '', $ldapObject->getType()];
+        }
+        
+        return $args;
     }
 }
