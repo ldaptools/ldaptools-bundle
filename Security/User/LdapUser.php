@@ -204,8 +204,6 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
     {
         return serialize([
             $this->attributes,
-            $this->category,
-            $this->class,
             $this->attrMap,
         ]);
     }
@@ -217,8 +215,6 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
     {
         list(
             $this->attributes,
-            $this->category,
-            $this->class,
             $this->attrMap
             ) = unserialize($serialized);
     }
