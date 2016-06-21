@@ -125,6 +125,8 @@ class Configuration implements ConfigurationInterface
                         ->prototype('scalar')->end()
                         ->end()
                     ->booleanNode('lazy_bind')->end()
+                    ->integerNode('idle_reconnect')
+                        ->info('The elapsed time (in seconds) when an idle connection will attempt to reconnect to LDAP.')->end()
                     ->scalarNode('server_selection')
                         ->info('Determines how the LDAP server is selected. Can be "order" or "random".')->end()
                     ->scalarNode('encoding')->end()
