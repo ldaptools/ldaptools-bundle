@@ -159,6 +159,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->container->setDefinition('ldap_tools.cache_warmer.ldap_tools_cache_warmer', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $this->container->setDefinition('ldap_tools.form.type.ldap_object', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $this->container->setDefinition('ldap_tools.doctrine.event_listener.ldap_object', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
+        $this->container->setDefinition('ldap_tools.security.ldap_guard_authenticator', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
 
         // Sets these by default when a domain is defined...
         $this->cacheWarmer->addTag("kernel.cache_warmer")->shouldBeCalled();

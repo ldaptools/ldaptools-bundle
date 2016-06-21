@@ -11,6 +11,7 @@
         <parameter key="ldap_tools.security.firewall.ldap_form_login_listener.class">LdapTools\Bundle\LdapToolsBundle\Security\Firewall\LdapFormLoginListener</parameter>
         <parameter key="ldap_tools.security.user.ldap_user_provider.class">LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider</parameter>
         <parameter key="ldap_tools.security.authentication.ldap_authentication_provider.class">LdapTools\Bundle\LdapToolsBundle\Security\Authentication\Provider\LdapAuthenticationProvider</parameter>
+        <parameter key="ldap_tools.security.ldap_guard_authenticator.class">LdapTools\Bundle\LdapToolsBundle\Security\LdapGuardAuthenticator</parameter>
         <parameter key="ldap_tools.cache_warmer.ldap_tools_cache_warmer.class">LdapTools\Bundle\LdapToolsBundle\CacheWarmer\LdapToolsCacheWarmer</parameter>
         <parameter key="ldap_tools.security.user.ldap_user_checker.class">LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker</parameter>
         <parameter key="ldap_tools.form.type.ldap_object.class">LdapTools\Bundle\LdapToolsBundle\Form\Type\LdapObjectType</parameter>
@@ -77,6 +78,12 @@
             <argument/> <!-- Provider Key -->
             <argument>%security.authentication.hide_user_not_found%</argument>
             <argument type="service" id="ldap_tools.security.user.ldap_user_provider" />
+            <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
+            <argument type="service" id="ldap_tools.ldap_manager" />
+        </service>
+
+        <service id="ldap_tools.security.ldap_guard_authenticator" class="%ldap_tools.security.ldap_guard_authenticator.class%">
+            <argument>%security.authentication.hide_user_not_found%</argument>
             <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
             <argument type="service" id="ldap_tools.ldap_manager" />
         </service>
