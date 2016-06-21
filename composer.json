@@ -18,11 +18,11 @@
         }
     ],
     "require": {
-        "ldaptools/ldaptools": ">=0.17",
+        "ldaptools/ldaptools": ">=0.20",
         "symfony/framework-bundle": "~2.3|~3.0"
     },
     "require-dev": {
-        "fabpot/php-cs-fixer": "~1.0",
+        "friendsofphp/php-cs-fixer": "~1.0",
         "phpspec/prophecy": "~1.6",
         "phpspec/phpspec": "~2.5",
         "akeneo/phpspec-skip-example-extension": "~1.2",
