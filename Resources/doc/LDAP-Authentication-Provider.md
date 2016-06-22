@@ -2,8 +2,9 @@ LDAP Authentication Provider
 ================
 
 Setting up LDAP form based authentication can be done fairly easily. Simply following the example configs listed below
-depending on your Symfony version. For 2.8+ the Guard component is used. In each example, don't forget to register the
-needed routes (`login`, `login_check`) along with other boiler-plate code (the controller login action and the login
+depending on your Symfony version. For Symfony 2.8+ the Guard component is used. In each example, don't forget to 
+register the needed routes (`login`, `login_check`) along with other boiler-plate code (the controller login action and 
+the login
 form).
 
 The following example security configs secure your full site with a LDAP form login: 
@@ -49,7 +50,7 @@ security:
         - { path: ^/, roles: ROLE_USER }
 ```
 
-### Symfony 2.3 (Using ldap_tools_form custom authentication type)
+### Symfony 2.3 (Use ldap_tools_form custom authentication type)
 
 ```yaml
 # app/config/security.yml
@@ -116,4 +117,18 @@ ldap_tools:
     security:
         # Set to null for no role to be assigned by default. Or set it to another role altogether.
         default_role: ROLE_APP_USER
+```
+
+## Guard Specific Settings
+
+There are some guard specific settings you can configure on the `app/config.yml` file:
+
+```yaml
+# app/config/config.yml
+# ...
+ldap_tools:
+    security:
+        guard:
+            # This is the entry point/start path for the RedirectResponse of the Guard component
+            start_path: '/login'
 ```
