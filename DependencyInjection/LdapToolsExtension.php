@@ -97,6 +97,11 @@ class LdapToolsExtension extends Extension
             [$config['ldap_object_type']]
         );
 
+        $container->getDefinition('ldap_tools.security.ldap_guard_authenticator')->addMethodCall(
+            'setStartPath',
+            [$config['guard']['start_path']]
+        );
+
         if (isset($config['search_base'])) {
             $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
                 'setSearchBase',

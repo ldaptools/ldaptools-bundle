@@ -50,6 +50,11 @@ class LdapToolsExtensionSpec extends ObjectBehavior
     protected $userProvider;
 
     /**
+     * @var Definition
+     */
+    protected $guardDef;
+    
+    /**
      * @var array
      */
     protected $attrMap = [
@@ -112,8 +117,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
      * @param \Symfony\Component\DependencyInjection\Definition $cacheWarmer
      * @param \Symfony\Component\DependencyInjection\Definition $doctrineEvents
      * @param \Symfony\Component\DependencyInjection\Definition $userProvider
+     * @param \Symfony\Component\DependencyInjection\Definition $guardDef
      */
-    function let($container, $parameterBag, $configDef, $loggerDef, $cacheWarmer, $doctrineEvents, $userProvider)
+    function let($container, $parameterBag, $configDef, $loggerDef, $cacheWarmer, $doctrineEvents, $userProvider, $guardDef)
     {
         $this->container = $container;
         $this->loggerDef = $loggerDef;
@@ -121,6 +127,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->cacheWarmer = $cacheWarmer;
         $this->doctrineEvents = $doctrineEvents;
         $this->userProvider = $userProvider;
+        $this->guardDef = $guardDef;
         $this->container->getParameter('kernel.debug')->willReturn(false);
 
         // Do some needed setup so it loads resources correctly.
@@ -132,6 +139,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->container->getDefinition('ldap_tools.configuration')->willReturn($this->configDef);
         $this->container->getDefinition('ldap_tools.log.logger_chain')->willReturn($this->loggerDef);
         $this->container->getDefinition("ldap_tools.security.user.ldap_user_provider")->willReturn($this->userProvider);
+        $this->container->getDefinition("ldap_tools.security.ldap_guard_authenticator")->willReturn($this->guardDef);
 
         $this->container->getDefinition("ldap_tools.cache_warmer.ldap_tools_cache_warmer")->willReturn($this->cacheWarmer);
         $this->container->getDefinition("ldap_tools.doctrine.event_listener.ldap_object")->willReturn($this->doctrineEvents);
@@ -176,6 +184,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
         $this->configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();
         $this->configDef->addMethodCall('setEventDispatcher', [new Reference('ldap_tools.event_dispatcher')])->shouldBeCalled();
+        $this->guardDef->addMethodCall('setStartPath', ["/login"])->shouldBeCalled();
 
         $this->userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
 

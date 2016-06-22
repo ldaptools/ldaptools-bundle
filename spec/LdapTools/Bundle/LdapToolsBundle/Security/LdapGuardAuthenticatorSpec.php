@@ -312,4 +312,10 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $this->start($this->request, null)->shouldReturnAnInstanceOf('Symfony\Component\HttpFoundation\RedirectResponse');   
     }
+    
+    function it_should_set_a_start_path()
+    {
+        $this->setStartPath('/foo');
+        $this->start($this->request, null)->getTargetUrl()->shouldEqual('/foo');
+    }
 }

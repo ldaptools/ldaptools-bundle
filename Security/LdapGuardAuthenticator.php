@@ -54,6 +54,11 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     protected $domain;
 
     /**
+     * @var string The entry point/start path.
+     */
+    protected $startPath = '/login';
+
+    /**
      * @param bool $hideUserNotFoundExceptions
      * @param LdapUserChecker $userChecker
      * @param LdapManager $ldap
@@ -169,7 +174,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authException = null)
     {
-        return new RedirectResponse('/login');
+        return new RedirectResponse($this->startPath);
     }
 
     /**
@@ -189,6 +194,16 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         $token->setAttribute('ldap_domain', $this->domain);
 
         return $token;
+    }
+
+    /**
+     * Set the entry point/start path.
+     * 
+     * @param string $startPath
+     */
+    public function setStartPath($startPath)
+    {
+        $this->startPath = $startPath;    
     }
 
     /**
