@@ -1,28 +1,92 @@
 LDAP Authentication Provider
 ================
 
-Setting up LDAP form based authentication can be done easily with the following security config example:
+Setting up LDAP form based authentication can be done fairly easily. Simply following the example configs listed below
+depending on your Symfony version. For 2.8+ the Guard component is used. In each example, don't forget to register the
+needed routes (`login`, `login_check`) along with other boiler-plate code (the controller login action and the login
+form).
+
+The following example security configs secure your full site with a LDAP form login: 
+
+### Symfony 2.8+ (Use the Guard Component)
 
 ```yaml
 # app/config/security.yml
 security:
-    # ...
+
+    encoders:
+            LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser: plaintext
+
     providers:
         ldap:
             id: ldap_tools.security.user.ldap_user_provider
 
     firewalls:
-        restricted_area:
-            pattern: ^/admin
-            logout:
-                path:   logout
-                target: login
+        # disables authentication for assets and the profiler, adapt it according to your needs
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            anonymous: ~
+            provider: ldap
+            form_login:
+                login_path: login
+                check_path: login_check
+                use_forward: true
+            pattern: ^/
+            logout: ~
+            guard:
+                authenticators:
+                    - ldap_tools.security.ldap_guard_authenticator
+
+        login:
+            pattern: ^/login$
+            anonymous: ~
+
+    access_control:
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }
+```
+
+### Symfony 2.3 (Using ldap_tools_form custom authentication type)
+
+```yaml
+# app/config/security.yml
+security:
+
+    encoders:
+            LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser: plaintext
+
+    providers:
+        ldap:
+            id: ldap_tools.security.user.ldap_user_provider
+
+    firewalls:
+        # disables authentication for assets and the profiler, adapt it according to your needs
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            anonymous: ~
+            provider: ldap
+            pattern: ^/
+            logout: ~
             ldap_tools_form:
                check_path: login_check
                login_path: login
+
+        login:
+            pattern: ^/login$
+            anonymous: ~
+
+    access_control:
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }
 ```
 
-The LDAP provider is used for the purpose of this example, but any other user provider can be substituted. By default the
+The LDAP provider is used for the purpose of these examples, but other user providers can be substituted. By default the
 LDAP user provider provides an extended instance of `\LdapTools\Object\LdapObject`.
 
 ## Mapping LDAP Groups to Roles
