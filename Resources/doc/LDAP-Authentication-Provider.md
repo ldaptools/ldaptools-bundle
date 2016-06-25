@@ -129,6 +129,6 @@ There are some guard specific settings you can configure on the `app/config.yml`
 ldap_tools:
     security:
         guard:
-            # This is the entry point/start path for the RedirectResponse of the Guard component
-            start_path: '/login'
+            # This is the entry point/start path route name for the RedirectResponse of the Guard component
+            start_path: 'login'
 ```

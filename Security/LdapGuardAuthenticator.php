@@ -14,11 +14,13 @@ use LdapTools\Exception\Exception;
 use LdapTools\Operation\AuthenticationOperation;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
@@ -28,7 +30,7 @@ use LdapTools\LdapManager;
 
 /**
  * LDAP Guard Authenticator.
- * 
+ *
  * @author Chad Sikorra <Chad.Sikorra@gmail.com>
  */
 class LdapGuardAuthenticator extends AbstractGuardAuthenticator
@@ -54,20 +56,26 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     protected $domain;
 
     /**
-     * @var string The entry point/start path.
+     * @var RouterInterface
      */
-    protected $startPath = '/login';
+    protected $router;
+
+    /**
+     * @var string The entry point/start path route name.
+     */
+    protected $startPath = 'login';
 
     /**
      * @param bool $hideUserNotFoundExceptions
      * @param LdapUserChecker $userChecker
      * @param LdapManager $ldap
      */
-    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap)
+    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, RouterInterface $router)
     {
         $this->hideUserNotFoundExceptions = $hideUserNotFoundExceptions;
         $this->userChecker = $userChecker;
         $this->ldap = $ldap;
+        $this->router = $router;
     }
 
     /**
@@ -125,7 +133,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     public function checkCredentials($credentials, UserInterface $user)
     {
         $domain = $this->ldap->getDomainContext();
-        
+
         try {
             $this->switchDomainIfNeeded($credentials);
             /** @var \LdapTools\Operation\AuthenticationResponse $response */
@@ -157,7 +165,13 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        return null;
+        if ($request->getSession()->has('_security.main.target_path')) {
+            $url = $request->getSession()->get('_security.main.target_path');
+        } else {
+            $url = '/';
+        }
+
+        return new RedirectResponse($url);
     }
 
     /**
@@ -165,16 +179,17 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        return null;
-    }
+        $request->getSession()->set(Security::AUTHENTICATION_ERROR, $exception);
 
+        return new RedirectResponse($this->router->generate($this->startPath));
+    }
 
     /**
      * {@inheritdoc}
      */
     public function start(Request $request, AuthenticationException $authException = null)
     {
-        return new RedirectResponse($this->startPath);
+        return new RedirectResponse($this->router->generate($this->startPath));
     }
 
     /**
@@ -198,12 +213,12 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
 
     /**
      * Set the entry point/start path.
-     * 
+     *
      * @param string $startPath
      */
     public function setStartPath($startPath)
     {
-        $this->startPath = $startPath;    
+        $this->startPath = $startPath;
     }
 
     /**
@@ -243,9 +258,9 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         }
         // Specifically show LdapTools related exceptions, ignore others. 
         if (!$this->hideUserNotFoundExceptions && $e instanceof Exception) {
-            throw new CustomUserMessageAuthenticationException($e->getMessage(), [], $e->getCode());    
+            throw new CustomUserMessageAuthenticationException($e->getMessage(), [], $e->getCode());
         }
-        
+
         throw $e;
     }
 }

@@ -184,7 +184,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
         $this->configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();
         $this->configDef->addMethodCall('setEventDispatcher', [new Reference('ldap_tools.event_dispatcher')])->shouldBeCalled();
-        $this->guardDef->addMethodCall('setStartPath', ["/login"])->shouldBeCalled();
+        $this->guardDef->addMethodCall('setStartPath', ["login"])->shouldBeCalled();
 
         $this->userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
 

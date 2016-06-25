@@ -86,6 +86,7 @@
             <argument>%security.authentication.hide_user_not_found%</argument>
             <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
             <argument type="service" id="ldap_tools.ldap_manager" />
+            <argument type="service" id="router" />
         </service>
 
         <service id="ldap_tools.form.type.ldap_object" class="%ldap_tools.form.type.ldap_object.class%">
