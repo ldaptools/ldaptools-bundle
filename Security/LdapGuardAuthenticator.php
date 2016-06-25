@@ -97,6 +97,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         if (empty($credentials['username'])) {
             return null;
         }
+        $request->getSession()->set(Security::LAST_USERNAME, $credentials['username']);
 
         return $credentials;
     }
