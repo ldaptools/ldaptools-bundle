@@ -1,11 +1,10 @@
 LDAP Authentication Provider
 ================
 
-Setting up LDAP form based authentication can be done fairly easily. Simply following the example configs listed below
+Setting up LDAP form based authentication can be done fairly easily. Simply follow the example configs listed below
 depending on your Symfony version. For Symfony 2.8+ the Guard component is used. In each example, don't forget to 
 register the needed routes (`login`, `login_check`) along with other boiler-plate code (the controller login action and 
-the login
-form).
+the login form).
 
 The following example security configs secure your full site with a LDAP form login: 
 
@@ -16,7 +15,8 @@ The following example security configs secure your full site with a LDAP form lo
 security:
 
     encoders:
-            LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser: plaintext
+        # This is the default user class returned from the LDAP provider below
+        LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser: plaintext
 
     providers:
         ldap:
@@ -30,6 +30,7 @@ security:
 
         main:
             anonymous: ~
+            # Use the default LDAP user provider defined above
             provider: ldap
             form_login:
                 login_path: login
@@ -57,7 +58,8 @@ security:
 security:
 
     encoders:
-            LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser: plaintext
+        # This is the default user class returned from the LDAP provider below
+        LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser: plaintext
 
     providers:
         ldap:
@@ -71,6 +73,7 @@ security:
 
         main:
             anonymous: ~
+            # Use the default LDAP user provider defined above
             provider: ldap
             pattern: ^/
             logout: ~
