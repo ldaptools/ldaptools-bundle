@@ -108,5 +108,13 @@ class LdapToolsExtension extends Extension
                 [$config['search_base']]
             );
         }
+        $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
+            'setRoleLdapType',
+            [$config['role_ldap_type']]
+        );
+        $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
+            'setRoleAttributeMap',
+            [$config['role_attributes']]
+        );
     }
 }

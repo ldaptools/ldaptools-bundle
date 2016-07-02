@@ -187,6 +187,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->guardDef->addMethodCall('setStartPath', ["login"])->shouldBeCalled();
 
         $this->userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
+        $this->userProvider->addMethodCall('setRoleLdapType', [LdapObjectType::GROUP])->shouldBeCalled();
+        $this->userProvider->addMethodCall('setRoleAttributeMap', [["name" => "name", "sid" => "sid", "guid" => "guid", "members" => "members"]])->shouldBeCalled();
 
         $this->load($this->config, $this->container);
     }
@@ -220,6 +222,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config['ldap_tools']['security']['default_attributes']['username'] = 'upn';
         $config['ldap_tools']['security']['check_groups_recursively'] = false;
         $config['ldap_tools']['security']['search_base'] = 'ou=foo,dc=example,dc=local';
+        $config['ldap_tools']['security']['role_ldap_type'] = 'foo';
+        $config['ldap_tools']['security']['role_attributes'] = ['members' => 'foo'];
 
         $this->container->setParameter('ldap_tools.security.roles', $roles)->shouldBeCalled();
         $this->container->setParameter('ldap_tools.security.default_role', 'ROLE_FOOBAR')->shouldBeCalled();
@@ -229,7 +233,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->container->setParameter('ldap_tools.security.check_groups_recursively', false)->shouldBeCalled();
         $this->userProvider->addMethodCall('setLdapObjectType', ['foo'])->shouldBeCalled();
         $this->userProvider->addMethodCall('setSearchBase', ['ou=foo,dc=example,dc=local'])->shouldBeCalled();
-
+        $this->userProvider->addMethodCall('setRoleLdapType', ['foo'])->shouldBeCalled();
+        $this->userProvider->addMethodCall('setRoleAttributeMap', [["members" => "foo", "name" => "name", "sid" => "sid", "guid" => "guid"]])->shouldBeCalled();
+        
         $this->load($config, $this->container);
     }
 

@@ -97,6 +97,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->connection = $connection;
         $this->config = new DomainConfiguration('foo.bar');
         $this->request = new Request();
+        $this->request->setSession(new Session());
 
         $this->router->generate('login')->willReturn('/login');
         $this->connection->getConfig()->willReturn($this->config);

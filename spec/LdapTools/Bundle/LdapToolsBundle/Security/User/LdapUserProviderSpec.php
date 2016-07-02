@@ -15,6 +15,7 @@ use LdapTools\DomainConfiguration;
 use LdapTools\Exception\EmptyResultException;
 use LdapTools\Exception\MultiResultException;
 use LdapTools\LdapManager;
+use LdapTools\Object\LdapObjectCollection;
 use LdapTools\Object\LdapObjectType;
 use LdapTools\Query\Builder\ADFilterBuilder;
 use LdapTools\Query\LdapQuery;
@@ -79,9 +80,16 @@ class LdapUserProviderSpec extends ObjectBehavior
      */
     function let($ldap, $qb, $query, $connection)
     {
+        $groups = new LdapObjectCollection();
+        $groups->add(new LdapObject(['name' => 'Foo', 'dn' => 'cn=Foo,dc=example,dc=local']));
+        $groups->add(new LdapObject(['guid' => '291d8444-9d5b-4b0a-a6d7-853408f704d5', 'dn' => 'cn=Bar,dc=example,dc=local']));
+        $groups->add(new LdapObject(['sid' => 'S-1-5-18', 'dn' => 'cn=LocalSys,dc=example,dc=local']));
+        $groups->add(new LdapObject(['name' => 'Just a DN', 'dn' => 'cn=Stuff,dc=example,dc=local']));
         $roleMap = [
             'ROLE_AWESOME' => ['foo'],
-            'ROLE_ADMIN' => ['bar'],
+            'ROLE_ADMIN' => ['291d8444-9d5b-4b0a-a6d7-853408f704d5'],
+            'ROLE_DN' => ['cn=Stuff,dc=example,dc=local'],
+            'ROLE_SID' => ['S-1-5-18'],
         ];
         $attrMap = [
             'username' => 'username',
@@ -102,19 +110,21 @@ class LdapUserProviderSpec extends ObjectBehavior
 
         $this->ldapObject = new LdapObject($this->attr, ['user'], ['user'], 'user');
         $query->getSingleResult()->willReturn($this->ldapObject);
+        $query->getResult()->willReturn($groups);
         $query->getArrayResult()->willReturn([
             ['name' => 'foo'],
             ['name' => 'bar'],
         ]);
 
         $qb->from(LdapObjectType::USER)->willReturn($qb);
-        $qb->fromGroups()->willReturn($qb);
+        $qb->from('group')->willReturn($qb);
         $qb->select(["username", "locked", "accountExpirationDate", "disabled", "passwordMustChange", "guid", "groups", "username"])->willReturn($qb);
+        $qb->select(["name", "sid", "guid"])->willReturn($qb);
         $qb->select('name')->willReturn($qb);
         $qb->where(['username' => 'foo'])->willReturn($qb);
         $qb->getLdapQuery()->willReturn($query);
         $qb->filter()->willReturn($this->filter);
-        $qb->where($this->filter->hasMemberRecursively($this->attr['guid']))->willReturn($qb);
+        $qb->where($this->filter->hasMemberRecursively($this->attr['guid'], 'members'))->willReturn($qb);
         $this->ldap->buildLdapQuery()->willReturn($qb);
 
         $connection->getConfig()->willReturn($this->config);
@@ -143,20 +153,20 @@ class LdapUserProviderSpec extends ObjectBehavior
     function it_should_not_set_a_default_role_if_it_is_set_to_null()
     {
         $this->setDefaultRole(null);
-        $this->query->getArrayResult()->willReturn(['test']);
+        $this->query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'Test'])));
 
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
     }
 
     function it_should_set_the_roles_properly_for_the_returned_groups()
     {
-        $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME', 'ROLE_ADMIN']);
+        $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME', 'ROLE_ADMIN', 'ROLE_DN', 'ROLE_SID']);
 
-        $this->query->getArrayResult()->willReturn([['name' => 'foo']]);
+        $this->query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo'])));
 
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME']);
 
-        $this->query->getArrayResult()->willReturn([['name' => 'foo.bar']]);
+        $this->query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo.bar'])));
 
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
     }
@@ -231,6 +241,22 @@ class LdapUserProviderSpec extends ObjectBehavior
         $searchBase = 'ou=employees,dc=foo,dc=bar';
         $this->setSearchBase($searchBase);
         $this->qb->setBaseDn($searchBase)->shouldBeCalled()->willReturn($this->qb);
+
+        $this->loadUserByUsername('foo');
+    }
+    
+    function it_should_set_the_ldap_type_for_the_role_query()
+    {
+        $this->setRoleLdapType('foo');
+        $this->qb->from('foo')->shouldBeCalled()->willReturn($this->qb);
+
+        $this->loadUserByUsername('foo');
+    }
+
+    function it_should_set_the_attribute_map_for_the_role_query()
+    {
+        $this->setRoleAttributeMap(['members' => 'members', 'name' => 'cn', 'guid' => 'foo', 'sid' => 'bar']);
+        $this->qb->select(['cn', 'foo', 'bar'])->shouldBeCalled()->willReturn($this->qb);
 
         $this->loadUserByUsername('foo');
     }
