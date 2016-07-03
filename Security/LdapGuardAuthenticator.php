@@ -10,8 +10,10 @@
 
 namespace LdapTools\Bundle\LdapToolsBundle\Security;
 
+use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Exception\Exception;
 use LdapTools\Operation\AuthenticationOperation;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -61,6 +63,11 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     protected $router;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * @var string The entry point/start path route name.
      */
     protected $startPath = 'login';
@@ -69,13 +76,16 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      * @param bool $hideUserNotFoundExceptions
      * @param LdapUserChecker $userChecker
      * @param LdapManager $ldap
+     * @param RouterInterface $router
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, RouterInterface $router)
+    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, RouterInterface $router, EventDispatcherInterface $dispatcher)
     {
         $this->hideUserNotFoundExceptions = $hideUserNotFoundExceptions;
         $this->userChecker = $userChecker;
         $this->ldap = $ldap;
         $this->router = $router;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -151,6 +161,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
                     $response->getErrorMessage(), [], $response->getErrorCode()
                 );
             }
+            $this->dispatcher->dispatch(LdapLoginEvent::SUCCESS, new LdapLoginEvent($user));
         } catch (\Exception $e) {
             $this->hideOrThrow($e);
         } finally {

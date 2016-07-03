@@ -15,6 +15,7 @@ use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Connection\ADResponseCodes;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
+use LdapTools\Event\EventDispatcherInterface;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\LdapManager;
 use LdapTools\Operation\AuthenticationOperation;
@@ -75,6 +76,11 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
     protected $response;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * @param \Symfony\Component\Security\Core\User\UserProviderInterface $userProvider
      * @param \LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker $userChecker
      * @param \LdapTools\LdapManager $ldap
@@ -82,8 +88,9 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
      * @param \LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser $user
      * @param \LdapTools\Connection\LdapConnectionInterface $connection
      * @param \LdapTools\Operation\AuthenticationResponse $response
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
      */
-    function let($userProvider, $userChecker, $ldap, $token, $user, $connection, $response)
+    function let($userProvider, $userChecker, $ldap, $token, $user, $connection, $response, $dispatcher)
     {
         $this->userProvider = $userProvider;
         $this->userChecker = $userChecker;
@@ -93,6 +100,7 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
         $this->connection = $connection;
         $this->operation = (new AuthenticationOperation())->setUsername('foo')->setPassword('bar');
         $this->response = $response;
+        $this->dispatcher = $dispatcher;
 
         $token->getUsername()->willReturn('foo');
         $token->getCredentials()->willReturn('bar');
@@ -121,7 +129,8 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
             true,
             $this->userProvider,
             new LdapUserChecker(),
-            $this->ldap
+            $this->ldap,
+            $this->dispatcher
         );
     }
 
@@ -165,7 +174,8 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
             false,
             $this->userProvider,
             new LdapUserChecker(),
-            $this->ldap
+            $this->ldap,
+            $this->dispatcher
         );
         $this->response->isAuthenticated()->willReturn(false);
         $this->response->getErrorCode()->willReturn(9000);
@@ -206,7 +216,8 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
             false,
             $this->userProvider,
             new LdapUserChecker(),
-            $this->ldap
+            $this->ldap,
+            $this->dispatcher
         );
         $this->userProvider->loadUserByUsername('foo')->willThrow(new UsernameNotFoundException());
 
@@ -249,5 +260,11 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
         $this->ldap->switchDomain('foo.bar')->shouldBeCalledTimes(1);
 
         $this->authenticate($this->token)->shouldReturnAnInstanceOf('\Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken');
+    }
+    
+    function it_should_call_a_login_success_event()
+    {
+        $this->dispatcher->dispatch('ldap_tools_bundle.login.success', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent'))->shouldBeCalled();
+        $this->authenticate($this->token);
     }
 }

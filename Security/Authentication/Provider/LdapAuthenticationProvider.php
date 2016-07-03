@@ -10,11 +10,13 @@
 
 namespace LdapTools\Bundle\LdapToolsBundle\Security\Authentication\Provider;
 
+use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\LdapManager;
 use LdapTools\Operation\AuthenticationOperation;
 use LdapTools\Operation\AuthenticationResponse;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -56,6 +58,11 @@ class LdapAuthenticationProvider implements AuthenticationProviderInterface
     protected $userChecker;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * @param string $providerKey
      * @param bool $hideUserNotFoundExceptions
      * @param UserProviderInterface $userProvider
@@ -67,13 +74,15 @@ class LdapAuthenticationProvider implements AuthenticationProviderInterface
         $hideUserNotFoundExceptions = true,
         UserProviderInterface $userProvider,
         LdapUserChecker $userChecker,
-        LdapManager $ldap
+        LdapManager $ldap,
+        EventDispatcherInterface $dispatcher
     ) {
         $this->userProvider = $userProvider;
         $this->ldap = $ldap;
         $this->hideUserNotFoundExceptions = $hideUserNotFoundExceptions;
         $this->providerKey = $providerKey;
         $this->userChecker = $userChecker;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -130,6 +139,7 @@ class LdapAuthenticationProvider implements AuthenticationProviderInterface
 
             throw new BadCredentialsException($response->getErrorMessage(), $response->getErrorCode());
         }
+        $this->dispatcher->dispatch(LdapLoginEvent::SUCCESS, new LdapLoginEvent($user));
 
         $newToken = new UsernamePasswordToken($user, null, $this->providerKey, $user->getRoles());
         $newToken->setAttributes($token->getAttributes());

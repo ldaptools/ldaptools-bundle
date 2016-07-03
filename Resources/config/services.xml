@@ -80,6 +80,7 @@
             <argument type="service" id="ldap_tools.security.user.ldap_user_provider" />
             <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
             <argument type="service" id="ldap_tools.ldap_manager" />
+            <argument type="service" id="event_dispatcher" />
         </service>
 
         <service id="ldap_tools.security.ldap_guard_authenticator" class="%ldap_tools.security.ldap_guard_authenticator.class%">
@@ -87,6 +88,7 @@
             <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
             <argument type="service" id="ldap_tools.ldap_manager" />
             <argument type="service" id="router" />
+            <argument type="service" id="event_dispatcher" />
         </service>
 
         <service id="ldap_tools.form.type.ldap_object" class="%ldap_tools.form.type.ldap_object.class%">

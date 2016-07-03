@@ -10,6 +10,7 @@
 
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Security;
 
+use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Connection\ADResponseCodes;
@@ -23,6 +24,7 @@ use LdapTools\Operation\AuthenticationOperation;
 use LdapTools\Operation\AuthenticationResponse;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\RouterInterface;
@@ -67,6 +69,11 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     protected $router;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * @var array
      */
     protected $requestCreds = [
@@ -88,8 +95,9 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
      * @param \LdapTools\LdapManager $ldap
      * @param \LdapTools\Connection\LdapConnectionInterface $connection
      * @param \Symfony\Component\Routing\RouterInterface $router
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher
      */
-    function let($ldap, $connection, $router)
+    function let($ldap, $connection, $router, $dispatcher)
     {
         $this->ldap = $ldap;
         $this->router = $router;
@@ -98,13 +106,14 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->config = new DomainConfiguration('foo.bar');
         $this->request = new Request();
         $this->request->setSession(new Session());
+        $this->dispatcher = $dispatcher;
 
         $this->router->generate('login')->willReturn('/login');
         $this->connection->getConfig()->willReturn($this->config);
         $this->ldap->getConnection()->willReturn($this->connection);
         $this->ldap->getDomainContext()->willReturn('foo.bar');
 
-        $this->beConstructedWith(true, $this->userChecker, $ldap, $router);
+        $this->beConstructedWith(true, $this->userChecker, $ldap, $router, $dispatcher);
     }
 
     function it_is_initializable()
@@ -164,7 +173,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $this->beConstructedWith(false, $this->userChecker, $this->ldap, $this->router);
+        $this->beConstructedWith(false, $this->userChecker, $this->ldap, $this->router, $this->dispatcher);
 
         $e = new CustomUserMessageAuthenticationException('unavailable');
         $up->loadUserByUsername('foo')->shouldBeCalled()->willThrow(new LdapConnectionException('unavailable'));
@@ -186,7 +195,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $this->beConstructedWith(false, $this->userChecker, $this->ldap, $this->router);
+        $this->beConstructedWith(false, $this->userChecker, $this->ldap, $this->router, $this->dispatcher);
         
         $user = new LdapUser(new LdapObject([
             'username' => 'foo',
@@ -245,7 +254,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $this->beConstructedWith(false, $this->userChecker, $this->ldap, $this->router);
+        $this->beConstructedWith(false, $this->userChecker, $this->ldap, $this->router, $this->dispatcher);
         $user = new LdapUser(New LdapObject(['username' => 'foo']));
         
         $this->connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(
@@ -342,5 +351,17 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         
         $this->router->generate('foo')->shouldBeCalled()->willReturn('/foo');
         $this->start($this->request, null)->getTargetUrl()->shouldEqual('/foo');
+    }
+    
+    function it_should_call_a_login_success_event()
+    {
+        $credentials = $this->credentials;
+        $credentials['ldap_domain'] = '';
+        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+
+        $this->connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
+        $this->checkCredentials($credentials, $user)->shouldReturn(true);
+        
+        $this->dispatcher->dispatch('ldap_tools_bundle.login.success', new LdapLoginEvent($user))->shouldBeCalled();
     }
 }
