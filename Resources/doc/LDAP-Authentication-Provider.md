@@ -156,3 +156,9 @@ security:
 
     # ...
 ```
+
+## Successful Login Event
+
+After a successful LDAP authentication attempt by the authentication provider a `ldap_tools_bundle.login.success` event
+is dispatched. You can call the `getUser()` method of the event to get the LDAP user that was just authenticated. You
+can then add/remove roles or do anything else you like before their token is created and their roles solidified.
