@@ -95,7 +95,8 @@ LDAP user provider provides an extended instance of `\LdapTools\Object\LdapObjec
 
 ## Mapping LDAP Groups to Roles
 
-Mapping LDAP groups to specific roles can be done via the bundle configuration:
+Mapping LDAP groups to specific roles can be done via the bundle configuration. The groups can be mapped using their 
+common name, GUID, SID, or full DN:
 
 ```yaml
 # app/config/config.yml
@@ -103,12 +104,17 @@ Mapping LDAP groups to specific roles can be done via the bundle configuration:
 ldap_tools:
     security:
         roles:
+            # Using the common group name
             SUPER_ADMIN: [ 'Domain Admins' ]
+            # Using the distinguished name of the group
+            ROLE_APP_USER: 'CN=App Users,OU=Groups,DC=example,DC=local'
+            # Using the GUID or SID of a group
+            ROLE_APP_ADMINS: ['291d8444-9d5b-4b0a-a6d7-853408f704d5', 'S-1-5-21-917267712-1342860078-1792151419-500']
 ```
 
 The above would grant any user that is a member of the `Domain Admins` LDAP group the `SUPER_ADMIN` role in Symfony. You
 can specify any number of LDAP group names for a specific role. Group membership is checked recursively by default for
-Active Directory.
+Active Directory. You can also mix DNs, SIDs, GUIDs, and names mapped to a specific role.
 
 By default the `ROLE_USER` is assigned to any LDAP user that successfully authenticates. The change this behavior you
 can modify the bundle config:
@@ -134,4 +140,19 @@ ldap_tools:
         guard:
             # This is the entry point/start path route name for the RedirectResponse of the Guard component
             start_path: 'login'
+```
+
+## Hide/Show Detailed Login Errors
+
+By default errors as to why authentication may have failed are hidden and just shown as "Bad Credentials". To get it to
+show more information you can set the `hide_user_not_found` security configuration to `false`. This is under the main
+Symfony security configuration:
+
+```yaml
+# app/config/security.yml
+
+security:
+    hide_user_not_found:  false
+
+    # ...
 ```
