@@ -1,9 +1,14 @@
 CHANGELOG
 =========
 
+0.3.0 (2016-08-22)
+------------------
+  * Allow group role mappings to be set by SID, GUID, DN or name.
+  * Add the connect_timeout domain config option.
+  * Add a LDAP login success event (ldap_tools_bundle.login.success).
+
 0.2.0 (2016-06-26)
 ------------------
-
   * Add a LDAP Guard authenticator for newer Symfony versions (replaces the ldap_tools_form)
   * Add a schema_name domain config option (@rouet)
   * Add an idle_reconnect domain config option.
@@ -12,5 +17,4 @@ CHANGELOG
 
 0.1.0 (2015-12-25)
 ------------------
-
   * Initial release.
