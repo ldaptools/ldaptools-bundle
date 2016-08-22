@@ -95,6 +95,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
                     'bind_format' => '%username%,dc=foo,dc=bar',
                     'page_size' => 500,
                     'idle_reconnect' => 300,
+                    'connect_timeout' => 5,
                     'ldap_options' => [
                         'ldap_opt_protocol_version' => 3,
                     ],

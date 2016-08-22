@@ -130,6 +130,8 @@ class Configuration implements ConfigurationInterface
                         ->info('If set to true, then the connection will not automatically connect and bind when first created.')->end()
                     ->integerNode('idle_reconnect')
                         ->info('The elapsed time (in seconds) when an idle connection will attempt to reconnect to LDAP.')->end()
+                    ->integerNode('connect_timeout')
+                        ->info('The elapsed time (in seconds) to wait while attempting the initial connection to LDAP.')->end()
                     ->scalarNode('server_selection')
                         ->info('Determines how the LDAP server is selected. Can be "order" or "random".')->end()
                     ->scalarNode('encoding')->end()
