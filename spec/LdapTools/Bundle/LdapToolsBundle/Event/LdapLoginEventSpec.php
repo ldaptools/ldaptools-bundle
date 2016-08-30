@@ -13,13 +13,12 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Event;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Object\LdapObject;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapLoginEventSpec extends ObjectBehavior
 {
-    function let()
+    function let(\Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token)
     {
-        $this->beConstructedWith(new LdapUser(new LdapObject(['foo' =>'bar'])));        
+        $this->beConstructedWith(new LdapUser(new LdapObject(['foo' =>'bar'])), $token);
     }
 
     function it_is_initializable()
@@ -30,5 +29,10 @@ class LdapLoginEventSpec extends ObjectBehavior
     function it_should_get_the_user()
     {
         $this->getUser()->shouldReturnAnInstanceOf('LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser');
+    }
+
+    function it_should_get_the_token($token)
+    {
+        $this->getToken()->shouldBeEqualTo($token);
     }
 }

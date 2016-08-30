@@ -12,6 +12,7 @@ namespace LdapTools\Bundle\LdapToolsBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -32,11 +33,17 @@ class LdapLoginEvent extends Event
     protected $user;
 
     /**
-     * @param UserInterface|LdapUser $user
+     * @var TokenInterface
      */
-    public function __construct(UserInterface $user)
+    protected $token;
+    /**
+     * @param UserInterface|LdapUser $user
+     * @param TokenInterface $token
+     */
+    public function __construct(UserInterface $user, TokenInterface $token)
     {
         $this->user = $user;
+        $this->token = $token;
     }
 
     /**
@@ -45,5 +52,13 @@ class LdapLoginEvent extends Event
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * @return TokenInterface
+     */
+    public function getToken()
+    {
+        return $this->token;
     }
 }

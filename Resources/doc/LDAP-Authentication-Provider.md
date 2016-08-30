@@ -161,4 +161,25 @@ security:
 
 After a successful LDAP authentication attempt by the authentication provider a `ldap_tools_bundle.login.success` event
 is dispatched. You can call the `getUser()` method of the event to get the LDAP user that was just authenticated. You
-can then add/remove roles or do anything else you like before their token is created and their roles solidified.
+can then add/remove roles or do anything else you like before their token is created and their roles solidified. You
+can also call the `getToken()` method to get the credentials used in the attempt. A quick example:
+
+```
+use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
+
+class LdapLoginListener
+{
+    public function onLdapLoginSuccess(LdapLoginEvent $event)
+    {
+        // Get the LDAP user that logged in...
+        $user = $event->getUser();
+        // Get the credentials they used for the login...
+        $password = $event->getToken()->getCredentials();
+        
+        // Do something with the user/password combo...
+    }
+}
+```
+
+Then just register the above class in your services and tag it properly.
+
