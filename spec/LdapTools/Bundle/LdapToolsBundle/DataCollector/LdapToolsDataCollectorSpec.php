@@ -160,7 +160,7 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
             'DN' => null,
             'Attributes' => print_r([
                 'username' => 'foo',
-                'unicodePwd' => LdapUtilities::MASK,
+                'unicodePwd' => LdapUtilities::MASK_PASSWORD,
             ], true),
             'Server' => null,
             "Controls" => "array (\n)",
