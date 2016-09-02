@@ -28,6 +28,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
@@ -358,10 +359,12 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
         $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $token = new UsernamePasswordToken($user, $credentials['password'], 'ldap-tools', $user->getRoles());
+        $token->setAttribute('ldap_domain', '');
 
         $this->connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
         $this->checkCredentials($credentials, $user)->shouldReturn(true);
         
-        $this->dispatcher->dispatch('ldap_tools_bundle.login.success', new LdapLoginEvent($user))->shouldBeCalled();
+        $this->dispatcher->dispatch('ldap_tools_bundle.login.success', new LdapLoginEvent($user, $token))->shouldBeCalled();
     }
 }

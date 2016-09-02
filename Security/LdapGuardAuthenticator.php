@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
@@ -161,7 +162,13 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
                     $response->getErrorMessage(), [], $response->getErrorCode()
                 );
             }
-            $this->dispatcher->dispatch(LdapLoginEvent::SUCCESS, new LdapLoginEvent($user));
+            // No way to get the token from the Guard, need to create one to pass...
+            $token = new UsernamePasswordToken($user, $credentials['password'], 'ldap-tools', $user->getRoles());
+            $token->setAttribute('ldap_domain', isset($credentials['ldap_domain']) ? $credentials['ldap_domain'] : '');
+            $this->dispatcher->dispatch(
+                LdapLoginEvent::SUCCESS,
+                new LdapLoginEvent($user, $token)
+            );
         } catch (\Exception $e) {
             $this->hideOrThrow($e);
         } finally {
