@@ -13,6 +13,7 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Form\Type;
 use LdapTools\LdapManager;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -63,11 +64,14 @@ class LdapObjectTypeSpec extends ObjectBehavior
 
     function it_should_have_a_parent_of_choice()
     {
-        if (Kernel::VERSION < 2.8) {
-            $this->getParent()->shouldBeEqualTo('choice');
+        $interface = new \ReflectionClass('\Symfony\Component\Form\FormTypeInterface');
+        if ($interface->hasMethod('getName')) {
+            $expected = 'choice';
         } else {
-            $this->getParent()->shouldBeEqualTo('Symfony\Component\Form\Extension\Core\Type\ChoiceType');
+            $expected = ChoiceType::class;
         }
+
+        $this->getParent()->shouldBeEqualTo($expected);
     }
 
     function it_should_get_the_name()
