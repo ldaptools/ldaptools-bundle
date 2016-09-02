@@ -1,4 +1,4 @@
-# LdapToolsBundle
+# LdapToolsBundle [![Build Status](https://travis-ci.org/ldaptools/ldaptools-bundle.svg)](https://travis-ci.org/ldaptools/ldaptools-bundle) [![Latest Stable Version](https://poser.pugx.org/ldaptools/ldaptools-bundle/v/stable.svg)](https://packagist.org/packages/ldaptools/ldaptools-bundle)
 -----------
 
 The LdapToolsBundle provides easy integration of LDAP for Symfony via [LdapTools](https://github.com/ldaptools/ldaptools).
