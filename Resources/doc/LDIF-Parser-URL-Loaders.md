@@ -6,7 +6,7 @@ By default it only includes support for a limited number of URL types. If you ha
 a LDIF file to load data then you need to create a [LDIF URL Loader](https://github.com/ldaptools/ldaptools/blob/master/docs/en/tutorials/LDIF-Files.md#ldif-url-loaders) which is a class that implements `LdapTools\Ldif\UrlLoader\UrlLoaderInterface`.
 Then you need to add an instance of that URL Loader to the LDIF Parser class via `setUrlLoader($type, $loader)`.
 
-The above process is made easy in this bundle by first create the LDIF URL Loader, registering it as a service, then simply
+The above process is made easy in this bundle by first creating the LDIF URL Loader, registering it as a service, then simply
 tagging the service with the `ldap_tools.ldif_url_loader` tag and a `type` property on the tag that defines the type of 
 URL it is (ie. `https`, `file`, etc).
 
