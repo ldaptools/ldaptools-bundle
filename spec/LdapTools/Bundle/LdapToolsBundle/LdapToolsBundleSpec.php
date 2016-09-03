@@ -12,9 +12,9 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle;
 
 use Doctrine\DBAL\Types\Type;
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\EventRegisterPass;
+use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\LdifUrlLoaderPass;
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Security\Factory\LdapFormLoginFactory;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapToolsBundleSpec extends ObjectBehavior
 {
@@ -32,6 +32,7 @@ class LdapToolsBundleSpec extends ObjectBehavior
         $extension->addSecurityListenerFactory(new LdapFormLoginFactory())->shouldBeCalled();
         $container->getExtension('security')->willReturn($extension);
         $container->addCompilerPass(new EventRegisterPass())->shouldBeCalled();
+        $container->addCompilerPass(new LdifUrlLoaderPass())->shouldBeCalled();
 
         $this->build($container);
     }

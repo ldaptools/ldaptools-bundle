@@ -7,6 +7,7 @@
     <parameters>
         <parameter key="ldap_tools.ldap_manager.class">LdapTools\LdapManager</parameter>
         <parameter key="ldap_tools.configuration.class">LdapTools\Configuration</parameter>
+        <parameter key="ldap_tools.ldif.parser.class">LdapTools\Ldif\LdifParser</parameter>
         <parameter key="ldap_tools.event_dispatcher.class">LdapTools\Event\SymfonyEventDispatcher</parameter>
         <parameter key="ldap_tools.security.firewall.ldap_form_login_listener.class">LdapTools\Bundle\LdapToolsBundle\Security\Firewall\LdapFormLoginListener</parameter>
         <parameter key="ldap_tools.security.user.ldap_user_provider.class">LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider</parameter>
@@ -52,6 +53,8 @@
         </service>
 
         <service id="ldap_tools.security.user.ldap_user_checker" class="%ldap_tools.security.user.ldap_user_checker.class%" />
+
+        <service id="ldap_tools.ldif_parser" class="%ldap_tools.ldif.parser.class%" />
 
         <service id="ldap_tools.security.firewall.ldap_form_login_listener"
                  class="%ldap_tools.security.firewall.ldap_form_login_listener.class%"

@@ -11,6 +11,7 @@
 namespace LdapTools\Bundle\LdapToolsBundle;
 
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\EventRegisterPass;
+use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\LdifUrlLoaderPass;
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Security\Factory\LdapFormLoginFactory;
 use LdapTools\Bundle\LdapToolsBundle\Doctrine\Type\LdapObjectCollectionType;
 use LdapTools\Bundle\LdapToolsBundle\Doctrine\Type\LdapObjectType;
@@ -57,5 +58,6 @@ class LdapToolsBundle extends Bundle
         $extension = $container->getExtension('security');
         $extension->addSecurityListenerFactory(new LdapFormLoginFactory());
         $container->addCompilerPass(new EventRegisterPass());
+        $container->addCompilerPass(new LdifUrlLoaderPass());
     }
 }

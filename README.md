@@ -98,3 +98,4 @@ class DefaultController extends Controller
 * [LDAP Authentication Provider](/Resources/doc/LDAP-Authentication-Provider.md)
 * [LDAP Object Form Type](/Resources/doc/LDAP-Object-Form-Type.md)
 * [LDAP Events](/Resources/doc/LDAP-Events.md)
+* [LDIF Parser URL Loaders](/Resources/doc/LDIF-Parser-URL-Loaders.md)
