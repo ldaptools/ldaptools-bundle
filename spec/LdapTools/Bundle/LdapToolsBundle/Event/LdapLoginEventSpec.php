@@ -13,10 +13,11 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Event;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Object\LdapObject;
 use PhpSpec\ObjectBehavior;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
 class LdapLoginEventSpec extends ObjectBehavior
 {
-    function let(\Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token)
+    function let(TokenInterface $token)
     {
         $this->beConstructedWith(new LdapUser(new LdapObject(['foo' =>'bar'])), $token);
     }

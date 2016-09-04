@@ -15,6 +15,8 @@ use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\EventRegisterP
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\LdifUrlLoaderPass;
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Security\Factory\LdapFormLoginFactory;
 use PhpSpec\ObjectBehavior;
+use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class LdapToolsBundleSpec extends ObjectBehavior
 {
@@ -23,11 +25,7 @@ class LdapToolsBundleSpec extends ObjectBehavior
         $this->shouldHaveType('LdapTools\Bundle\LdapToolsBundle\LdapToolsBundle');
     }
 
-    /**
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     * @param \Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension $extension
-     */
-    function it_should_add_the_security_listener_factory_and_compiler_pass_when_calling_build($container, $extension)
+    function it_should_add_the_security_listener_factory_and_compiler_pass_when_calling_build(ContainerBuilder $container, SecurityExtension $extension)
     {
         $extension->addSecurityListenerFactory(new LdapFormLoginFactory())->shouldBeCalled();
         $container->getExtension('security')->willReturn($extension);

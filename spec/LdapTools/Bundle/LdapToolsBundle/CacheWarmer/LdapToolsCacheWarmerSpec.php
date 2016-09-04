@@ -12,33 +12,17 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\CacheWarmer;
 
 use LdapTools\Configuration;
 use LdapTools\DomainConfiguration;
+use LdapTools\Factory\LdapObjectSchemaFactory;
 use LdapTools\LdapManager;
 use LdapTools\Schema\LdapObjectSchema;
+use LdapTools\Schema\Parser\SchemaParserInterface;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapToolsCacheWarmerSpec extends ObjectBehavior
 {
-    /**
-     * @var LdapManager
-     */
-    protected $ldap;
-
-    /**
-     * @var Configuration
-     */
-    protected $configuration;
-
-    /**
-     * @param \LdapTools\LdapManager $ldapManager
-     * @param \LdapTools\Configuration $configuration
-     */
-    function let($ldapManager, $configuration)
+    function let(LdapManager $ldap, Configuration $configuration)
     {
-        $this->configuration = $configuration;
-        $this->ldap = $ldapManager;
-
-        $this->beConstructedWith($ldapManager, $configuration);
+        $this->beConstructedWith($ldap, $configuration);
     }
 
     function it_is_initializable()
@@ -51,19 +35,15 @@ class LdapToolsCacheWarmerSpec extends ObjectBehavior
         $this->isOptional()->shouldBeEqualTo(true);
     }
 
-    /**
-     * @param \LdapTools\Schema\Parser\SchemaParserInterface $parser
-     * @param \LdapTools\Factory\LdapObjectSchemaFactory $schemaFactory
-     */
-    function it_should_warm_up_the_cache($parser, $schemaFactory)
+    function it_should_warm_up_the_cache($ldap, $configuration, SchemaParserInterface $parser, LdapObjectSchemaFactory $schemaFactory)
     {
-        $this->ldap->getSchemaParser()->willReturn($parser);
-        $this->ldap->getDomainContext()->willReturn('foo');
-        $this->ldap->getSchemaFactory()->willReturn($schemaFactory);
+        $ldap->getSchemaParser()->willReturn($parser);
+        $ldap->getDomainContext()->willReturn('foo');
+        $ldap->getSchemaFactory()->willReturn($schemaFactory);
 
         // It will switch to each domain as it loops. But it should call the original context twice...
-        $this->ldap->switchDomain('foo')->shouldBeCalledTimes(2);
-        $this->ldap->switchDomain('bar')->shouldBeCalledTimes(1);
+        $ldap->switchDomain('foo')->shouldBeCalledTimes(2);
+        $ldap->switchDomain('bar')->shouldBeCalledTimes(1);
 
         // When the schema factory get is called it will take care of the caching...
         $schemaFactory->get('ad', 'foo')->shouldBeCalled()->willReturn(null);
@@ -71,7 +51,7 @@ class LdapToolsCacheWarmerSpec extends ObjectBehavior
 
         $domainOne = new DomainConfiguration('foo');
         $domainTwo = (new DomainConfiguration('bar'))->setLdapType('openldap');
-        $this->configuration->getDomainConfiguration()->willReturn([$domainOne, $domainTwo]);
+        $configuration->getDomainConfiguration()->willReturn([$domainOne, $domainTwo]);
 
         $parser->parseAll('ad')->shouldBeCalled()->willReturn([new LdapObjectSchema('ad', 'foo')]);
         $parser->parseAll('openldap')->shouldBeCalled()->willReturn([new LdapObjectSchema('openldap', 'bar')]);

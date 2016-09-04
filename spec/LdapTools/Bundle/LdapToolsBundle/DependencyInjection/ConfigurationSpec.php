@@ -11,7 +11,6 @@
 namespace spec\LdapTools\Bundle\LdapToolsBundle\DependencyInjection;
 
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class ConfigurationSpec extends ObjectBehavior
 {

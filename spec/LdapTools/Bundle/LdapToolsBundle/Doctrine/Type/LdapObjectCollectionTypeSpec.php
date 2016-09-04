@@ -13,7 +13,6 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Doctrine\Type;
 use Doctrine\DBAL\Types\Type;
 use LdapTools\Bundle\LdapToolsBundle\Doctrine\Type\LdapObjectCollectionType;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapObjectCollectionTypeSpec extends ObjectBehavior
 {

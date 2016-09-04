@@ -15,34 +15,15 @@ use LdapTools\LdapManager;
 use LdapTools\Log\LogOperation;
 use LdapTools\Operation\AddOperation;
 use LdapTools\Operation\DeleteOperation;
-use LdapTools\Utilities\LdapUtilities;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class LdapToolsDataCollectorSpec extends ObjectBehavior
 {
-    /**
-     * @var LdapManager
-     */
-    protected $ldap;
-
-    /**
-     * @var LdapProfilerLogger
-     */
-    protected $logger;
-
-    /**
-     * @var LogOperation[]
-     */
-    protected $logs;
-
-    /**
-     * @param \LdapTools\LdapManager $ldap
-     */
-    function let($ldap)
+    function let(LdapManager $ldap)
     {
-        $this->ldap = $ldap;
-        $this->logger = new LdapProfilerLogger();
+        $logger = new LdapProfilerLogger();
 
         // Add some log data...
         $addOperation = (new AddOperation())->setAttributes(['username' => 'foo', 'unicodePwd' => 'bar']);
@@ -54,20 +35,15 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
         $deleteLog = new LogOperation($deleteOperation);
         $deleteLog->setDomain('example.local');
 
-        $this->logs = [
-            $addLog,
-            $deleteLog,
-        ];
-
         /** @var LogOperation $log */
         foreach ([$addLog, $deleteLog] as $log) {
-            $this->logger->start($log->start());
-            $this->logger->end($log->stop());
+            $logger->start($log->start());
+            $logger->end($log->stop());
         }
 
-        $this->ldap->getDomains()->willReturn(['foo.bar', 'example.local']);
+        $ldap->getDomains()->willReturn(['foo.bar', 'example.local']);
 
-        $this->beConstructedWith($this->logger, $this->ldap);
+        $this->beConstructedWith($logger, $ldap);
     }
 
     function it_is_initializable()
@@ -85,20 +61,12 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
         $this->getName()->shouldBeEqualTo('ldaptools');
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_collect_data($request, $response)
+    function it_should_collect_data(Request $request, Response $response)
     {
         $this->collect($request, $response);
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_get_errors($request, $response)
+    function it_should_get_errors(Request $request, Response $response)
     {
         $this->collect($request, $response);
         $this->getErrors()->shouldBeArray();
@@ -106,54 +74,34 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
         $this->getErrors()->shouldHaveLogKeyAndValue('error', 'fail');
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_get_all_operations($request, $response)
+    function it_should_get_all_operations(Request $request, Response $response)
     {
         $this->collect($request, $response);
         $this->getOperations()->shouldBeArray();
         $this->getOperations()->shouldHaveCount(2);
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_get_operations_by_domain($request, $response)
+    function it_should_get_operations_by_domain(Request $request, Response $response)
     {
         $this->collect($request, $response);
         $this->getOperationsByDomain()->shouldBeArray();
         $this->getOperationsByDomain()->shouldHaveCount(2);
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_get_the_domains($request, $response)
+    function it_should_get_the_domains(Request $request, Response $response)
     {
         $this->collect($request, $response);
         $this->getDomains()->shouldBeEqualTo(['foo.bar','example.local']);
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_get_the_time_of_all_operations_combined($request, $response)
+    function it_should_get_the_time_of_all_operations_combined(Request $request, Response $response)
     {
         $this->collect($request, $response);
         $this->getTime()->shouldBeDouble();
         $this->getTime()->shouldNotBeEqualTo(0);
     }
 
-    /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
-     */
-    function it_should_remove_password_information_from_the_operation($request, $response)
+    function it_should_remove_password_information_from_the_operation(Request $request, Response $response)
     {
         $this->collect($request, $response);
         $this->getOperations()->shouldHaveLogKeyAndValue('data', [

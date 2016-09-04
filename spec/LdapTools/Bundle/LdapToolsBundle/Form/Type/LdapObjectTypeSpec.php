@@ -11,6 +11,9 @@
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Form\Type;
 
 use LdapTools\LdapManager;
+use LdapTools\Object\LdapObjectCollection;
+use LdapTools\Query\LdapQuery;
+use LdapTools\Query\LdapQueryBuilder;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -20,22 +23,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class LdapObjectTypeSpec extends ObjectBehavior
 {
     /**
-     * @var LdapManager
-     */
-    protected $ldap;
-
-    /**
      * @var OptionsResolver
      */
     protected $resolver;
 
-    /**
-     * @param \LdapTools\LdapManager $ldap
-     * @param \LdapTools\Query\LdapQueryBuilder $qb
-     * @param \LdapTools\Query\LdapQuery $query
-     * @param \LdapTools\Object\LdapObjectCollection $collection
-     */
-    public function let($ldap, $qb, $query, $collection)
+    public function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query, LdapObjectCollection $collection)
     {
         $ldap->getDomainContext()->willReturn('foo.bar');
         $ldap->buildLdapQuery()->willReturn($qb);

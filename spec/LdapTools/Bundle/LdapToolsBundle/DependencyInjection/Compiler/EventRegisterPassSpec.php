@@ -12,7 +12,8 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler;
 
 use LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\EventRegisterPass;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 
 class EventRegisterPassSpec extends ObjectBehavior
 {
@@ -21,10 +22,7 @@ class EventRegisterPassSpec extends ObjectBehavior
         $this->shouldHaveType('LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Compiler\EventRegisterPass');
     }
 
-    /**
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     */
-    function it_should_process_tagged_services_when_there_are_none_found($container)
+    function it_should_process_tagged_services_when_there_are_none_found(ContainerBuilder $container)
     {
         $container->findTaggedServiceIds(EventRegisterPass::SUBSCRIBER_TAG)->willReturn([]);
         $container->findTaggedServiceIds(EventRegisterPass::LISTENER_TAG)->willReturn([]);
@@ -32,11 +30,7 @@ class EventRegisterPassSpec extends ObjectBehavior
         $this->process($container);
     }
 
-    /**
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     * @param \Symfony\Component\DependencyInjection\Definition $definition
-     */
-    function it_should_process_tagged_services_when_they_exist($container, $definition)
+    function it_should_process_tagged_services_when_they_exist(ContainerBuilder $container, Definition $definition)
     {
         $container->findTaggedServiceIds(EventRegisterPass::SUBSCRIBER_TAG)->willReturn(
             ['foo.subscriber' => []]
@@ -51,11 +45,7 @@ class EventRegisterPassSpec extends ObjectBehavior
         $this->process($container);
     }
 
-    /**
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     * @param \Symfony\Component\DependencyInjection\Definition $definition
-     */
-    function it_should_require_the_method_and_event_property_for_the_listener_services($container, $definition)
+    function it_should_require_the_method_and_event_property_for_the_listener_services(ContainerBuilder $container, Definition $definition)
     {
         $container->findTaggedServiceIds(EventRegisterPass::SUBSCRIBER_TAG)->willReturn([]);
         $container->findTaggedServiceIds(EventRegisterPass::LISTENER_TAG)->willReturn(
@@ -79,11 +69,7 @@ class EventRegisterPassSpec extends ObjectBehavior
         $this->shouldThrow('\InvalidArgumentException')->duringProcess($container);
     }
 
-    /**
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     * @param \Symfony\Component\DependencyInjection\Definition $definition
-     */
-    function it_should_not_allow_an_abstract_service_as_a_listener($container, $definition)
+    function it_should_not_allow_an_abstract_service_as_a_listener(ContainerBuilder $container, Definition $definition)
     {
         $container->findTaggedServiceIds(EventRegisterPass::SUBSCRIBER_TAG)->willReturn([]);
         $container->findTaggedServiceIds(EventRegisterPass::LISTENER_TAG)->willReturn(

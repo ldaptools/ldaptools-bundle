@@ -15,7 +15,6 @@ use LdapTools\Operation\AddOperation;
 use LdapTools\Operation\BatchModifyOperation;
 use LdapTools\Operation\DeleteOperation;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapProfilerLoggerSpec extends ObjectBehavior
 {

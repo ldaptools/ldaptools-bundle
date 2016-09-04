@@ -12,7 +12,6 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Form\ChoiceList;
 
 use LdapTools\Object\LdapObject;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 /**
  * @require Symfony\Component\Form\Extension\Core\ChoiceList\ObjectChoiceList
