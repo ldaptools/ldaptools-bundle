@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.4.0 (2016-09-05)
+------------------
+  * Add a LDIF parser service. Allow tagging LDIF URL loaders to it.
+  * Add token information to the LDAP login success event.
+  * Correct several specs, add the build status to the readme.
+  * Add the bundle to Scrutinizer and add the score to the readme.
+
 0.3.0 (2016-08-22)
 ------------------
   * Allow group role mappings to be set by SID, GUID, DN or name.
