@@ -1,7 +1,7 @@
 LDAP Authentication with the FOSUserBundle
 ==========
 
-There may be times where you want to have a custom User class that gets loaded for a database (such as FOSUserBundle)
+There may be times where you want to have a custom User class that gets loaded from a database (such as FOSUserBundle)
 but then authenticate that user against LDAP on login. This can be accomplished easily when using this bundle's LDAP
 guard component.
 
@@ -15,7 +15,7 @@ Follow the above guide like you normally would to get your database user ready/c
  
 #### 3. Setup your user provider to use the FOSUserBundle user provider.
 
-You end security config using the FOSUserBundle provider but the LDAP authentication Guard would look like:
+Your end security config using the FOSUserBundle provider, but the LDAP authentication Guard, would look like:
 
 ```yml
 security:
@@ -65,4 +65,4 @@ password stored in the database.
 
 You should also note that LDAP role mapping for the LdapTools config will not take effect. That's a function of the LDAP
 user provider in this bundle. However, you can hook into the `ldap_tools_bundle.login.success` event and assign any roles
-based on an LDAP query there.
+based on an LDAP query there. For an example see the [LDAP authentication provider doc](./LDAP-Authentication-Provider.md#Successful-Login-Event).

@@ -164,7 +164,11 @@ is dispatched. You can call the `getUser()` method of the event to get the LDAP 
 can then add/remove roles or do anything else you like before their token is created and their roles solidified. You
 can also call the `getToken()` method to get the credentials used in the attempt. A quick example:
 
+#### 1. Create the event listener class.
+ 
 ```
+namespace AppBundle\Event;
+
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 
 class LdapLoginListener
@@ -181,5 +185,12 @@ class LdapLoginListener
 }
 ```
 
-Then just register the above class in your services and tag it properly.
+#### 2. Create and tag the above class as a service.
 
+```yaml
+# app/config/services.yml
+    app.event.login_listener:
+        class: AppBundle\Event\LdapLoginListener
+        tags:
+            - { name: kernel.event_listener, event: ldap_tools_bundle.login.success, method: onLdapLoginSuccess }
+```
