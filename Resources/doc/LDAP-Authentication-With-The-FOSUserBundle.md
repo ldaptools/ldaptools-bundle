@@ -57,7 +57,7 @@ security:
         - { path: ^/, roles: ROLE_USER }
 ```
 
-4. Create FOSUserBundle Users and Roles
+#### 4. Create FOSUserBundle Users and Roles
 
 Note that with the above you're still responsible for creating users within the FOSUserBundle so they exist in the database.
 However, the user's can have any password (or none at all) as the authentication is done against LDAP and not against their
