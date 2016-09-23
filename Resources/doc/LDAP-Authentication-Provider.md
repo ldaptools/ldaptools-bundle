@@ -1,6 +1,14 @@
 LDAP Authentication Provider
 ================
 
+  * [Symfony 2.8+](#symfony-28-use-the-guard-component)
+  * [Symfony 2.3](#symfony-23-use-ldap_tools_form-custom-authentication-type)
+  * [Mapping LDAP Groups to Roles](#mapping-ldap-groups-to-roles)
+  * [Guard Specific Settings](#guard-specific-settings)
+  * [Show Detailed Login Errors](#hideshow-detailed-login-errors)
+  * [LDAP Login Event](#successful-login-event)
+  * [User Refresh Settings](#user-refresh-settings)
+
 Setting up LDAP form based authentication can be done fairly easily. Simply follow the example configs listed below
 depending on your Symfony version. For Symfony 2.8+ the Guard component is used. In each example, don't forget to 
 register the needed routes (`login`, `login_check`) along with other boiler-plate code (the controller login action and 
@@ -194,3 +202,30 @@ class LdapLoginListener
         tags:
             - { name: kernel.event_listener, event: ldap_tools_bundle.login.success, method: onLdapLoginSuccess }
 ```
+
+## User Refresh Settings
+
+When Symfony processes a request it will "refresh" the authenticated user using your user provider. If you are using
+this bundles LDAP user provider, then this means it will query LDAP for your user and any roles associated with them.
+You may want more control over this process depending on the size of your application/environment to reduce the amount
+queries against LDAP.
+
+There are two settings to control this. Both are enabled by default:
+
+```yaml
+# app/config/config.yml
+
+ldap_tools:
+    security:
+        # Set this to false if you do not want user attributes queried on each request.
+        refresh_user_attributes: false
+        # Set this to false if you do not want user roles queried on each request.
+        refresh_user_roles: false
+
+    # ...
+```
+
+Setting both of the above to false means no LDAP queries will be performed for the user while they are still logged in.
+Any changes in LDAP (such as their account being renamed, disabled, locked, expired, etc) will not take effect until
+they logout and log back into the web application. Any group membership changes that affect roles will not be noticed 
+after the initial login if `refresh_user_roles` is set to false.

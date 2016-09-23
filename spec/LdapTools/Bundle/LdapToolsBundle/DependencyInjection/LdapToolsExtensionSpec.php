@@ -138,6 +138,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
         $userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleLdapType', [LdapObjectType::GROUP])->shouldBeCalled();
+        $userProvider->addMethodCall('setRefreshAttributes', [true])->shouldBeCalled();
+        $userProvider->addMethodCall('setRefreshRoles', [true])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleAttributeMap', [["name" => "name", "sid" => "sid", "guid" => "guid", "members" => "members"]])->shouldBeCalled();
 
         $this->load($this->config, $container);
@@ -174,6 +176,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config['ldap_tools']['security']['search_base'] = 'ou=foo,dc=example,dc=local';
         $config['ldap_tools']['security']['role_ldap_type'] = 'foo';
         $config['ldap_tools']['security']['role_attributes'] = ['members' => 'foo'];
+        $config['ldap_tools']['security']['refresh_user_attributes'] = false;
+        $config['ldap_tools']['security']['refresh_user_roles'] = false;
 
         $container->setParameter('ldap_tools.security.roles', $roles)->shouldBeCalled();
         $container->setParameter('ldap_tools.security.default_role', 'ROLE_FOOBAR')->shouldBeCalled();
@@ -184,6 +188,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $userProvider->addMethodCall('setLdapObjectType', ['foo'])->shouldBeCalled();
         $userProvider->addMethodCall('setSearchBase', ['ou=foo,dc=example,dc=local'])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleLdapType', ['foo'])->shouldBeCalled();
+        $userProvider->addMethodCall('setRefreshAttributes', [false])->shouldBeCalled();
+        $userProvider->addMethodCall('setRefreshRoles', [false])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleAttributeMap', [["members" => "foo", "name" => "name", "sid" => "sid", "guid" => "guid"]])->shouldBeCalled();
         
         $this->load($config, $container);

@@ -10,6 +10,7 @@
 
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Security\User;
 
+use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
 use LdapTools\Exception\EmptyResultException;
@@ -259,5 +260,45 @@ class LdapUserProviderSpec extends ObjectBehavior
         $this->qb->select(['cn', 'foo', 'bar'])->shouldBeCalled()->willReturn($this->qb);
 
         $this->loadUserByUsername('foo');
+    }
+
+    function it_should_not_query_ldap_on_a_refresh_if_refresh_attributes_and_roles_is_false($connection, LdapUser $user)
+    {
+        $this->setRefreshAttributes(false);
+        $this->setRefreshRoles(false);
+        $connection->execute(Argument::any())->shouldNotBeCalled();
+
+        $user->getRoles()->shouldBeCalled()->willReturn(['ROLE_FOO']);
+        $user->getType()->shouldBeCalled()->willReturn('user');
+        $user->toArray()->shouldBeCalled()->willReturn(['foo' => 'bar']);
+
+        $this->refreshUser($user)->toArray()->shouldEqual(['foo' => 'bar']);
+    }
+
+    function it_should_refresh_attributes_but_not_roles_if_specified($query, LdapUser $user, $qb)
+    {
+        $this->setRefreshRoles(false);
+        $query->getSingleResult()->shouldBeCalled();
+        $query->getResult()->shouldNotBeCalled();
+
+        $user->getLdapGuid()->shouldBeCalled()->willReturn($this->attr['guid']);
+        $qb->where(['guid' => $this->attr['guid']])->shouldBeCalled()->willReturn($qb);
+        $user->getRoles()->shouldBeCalled()->willReturn(['ROLE_FOO']);
+
+        $this->refreshUser($user)->toArray()->shouldEqual($this->attr);
+    }
+
+    function it_should_refresh_roles_but_not_attributes_if_specified($query, LdapUser $user)
+    {
+        $this->setRefreshAttributes(false);
+        $query->getResult()->shouldBeCalled();
+
+        $user->toArray()->shouldBeCalled()->willReturn(['foo' => 'bar', 'guid' => $this->attr['guid']]);
+        $user->getType()->shouldBeCalled()->willReturn('user');
+
+        $user->getRoles()->shouldNotBeCalled();
+        $query->getSingleResult()->shouldNotBeCalled();
+
+        $this->refreshUser($user)->toArray()->shouldEqual(['foo' => 'bar', 'guid' => $this->attr['guid']]);
     }
 }

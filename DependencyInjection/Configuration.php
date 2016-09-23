@@ -217,6 +217,10 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('members')->defaultValue('members')->end()
                             ->end()
                         ->end()
+                    ->booleanNode('refresh_user_attributes')
+                        ->info('Set this to false if you do not want user attributes re-queried on a user refresh.')->defaultTrue()->end()
+                    ->booleanNode('refresh_user_roles')
+                        ->info('Set this to false if you do not want user roles re-queried on a user refresh.')->defaultTrue()->end()
                     ->end()
                 ->end()
             ->end();

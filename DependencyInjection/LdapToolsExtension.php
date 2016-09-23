@@ -102,19 +102,28 @@ class LdapToolsExtension extends Extension
             [$config['guard']['start_path']]
         );
 
+        $userProviderDef = $container->getDefinition('ldap_tools.security.user.ldap_user_provider');
         if (isset($config['search_base'])) {
-            $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
+            $userProviderDef->addMethodCall(
                 'setSearchBase',
                 [$config['search_base']]
             );
         }
-        $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
+        $userProviderDef->addMethodCall(
             'setRoleLdapType',
             [$config['role_ldap_type']]
         );
-        $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
+        $userProviderDef->addMethodCall(
             'setRoleAttributeMap',
             [$config['role_attributes']]
+        );
+        $userProviderDef->addMethodCall(
+            'setRefreshAttributes',
+            [$config['refresh_user_attributes']]
+        );
+        $userProviderDef->addMethodCall(
+            'setRefreshRoles',
+            [$config['refresh_user_roles']]
         );
     }
 }

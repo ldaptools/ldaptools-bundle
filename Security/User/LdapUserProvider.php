@@ -95,6 +95,16 @@ class LdapUserProvider implements UserProviderInterface
     protected $searchBase;
 
     /**
+     * @var bool Whether or not user attributes should be re-queried on a refresh.
+     */
+    protected $refreshAttributes = true;
+
+    /**
+     * @var bool Whether or not user roles should be re-queried on a refresh.
+     */
+    protected $refreshRoles = true;
+
+    /**
      * @param LdapManager $ldap
      * @param array $attrMap
      * @param array $roleMap
@@ -188,11 +198,27 @@ class LdapUserProvider implements UserProviderInterface
     }
 
     /**
+     * @param bool $refreshRoles
+     */
+    public function setRefreshRoles($refreshRoles)
+    {
+        $this->refreshRoles = $refreshRoles;
+    }
+
+    /**
+     * @param bool $refreshAttributes
+     */
+    public function setRefreshAttributes($refreshAttributes)
+    {
+        $this->refreshAttributes = $refreshAttributes;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function loadUserByUsername($username)
     {
-        return $this->searchForUser($this->attrMap['username'], $username);
+        return $this->setRolesForUser($this->searchForUser($this->attrMap['username'], $username));
     }
 
     /**
@@ -203,8 +229,18 @@ class LdapUserProvider implements UserProviderInterface
         if (!$user instanceof LdapUser) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
+        if ($this->refreshAttributes) {
+            $refreshedUser = $this->searchForUser($this->attrMap['guid'], $user->getLdapGuid());
+        } else {
+            $refreshedUser = $this->constructUserClass($user);
+        }
+        if ($this->refreshRoles) {
+            $this->setRolesForUser($refreshedUser);
+        } else {
+            $refreshedUser->setRoles($user->getRoles());
+        }
 
-        return $this->searchForUser($this->attrMap['guid'], $user->getLdapGuid());
+        return $refreshedUser;
     }
 
     /**
@@ -238,10 +274,8 @@ class LdapUserProvider implements UserProviderInterface
         } catch (MultiResultException $e) {
             throw new UsernameNotFoundException(sprintf('Multiple results for "%s" were found.', $value));
         }
-        $user = $this->constructUserClass($ldapUser);
-        $this->setRolesForUser($user);
 
-        return $user;
+        return $this->constructUserClass($ldapUser);
     }
 
     /**
@@ -263,6 +297,7 @@ class LdapUserProvider implements UserProviderInterface
      * Set the roles for the user based on group membership.
      *
      * @param LdapUser $user
+     * @return LdapUser
      */
     protected function setRolesForUser(LdapUser $user)
     {
@@ -276,6 +311,8 @@ class LdapUserProvider implements UserProviderInterface
                 $user->addRole($role);
             }
         }
+
+        return $user;
     }
 
     /**
