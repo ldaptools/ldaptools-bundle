@@ -8,6 +8,7 @@ LDAP Authentication Provider
   * [Show Detailed Login Errors](#hideshow-detailed-login-errors)
   * [LDAP Login Event](#successful-login-event)
   * [User Refresh Settings](#user-refresh-settings)
+  * [Multiple Domain Login](#multiple-domain-login)
 
 Setting up LDAP form based authentication can be done fairly easily. Simply follow the example configs listed below
 depending on your Symfony version. For Symfony 2.8+ the Guard component is used. In each example, don't forget to 
@@ -229,3 +230,26 @@ Setting both of the above to false means no LDAP queries will be performed for t
 Any changes in LDAP (such as their account being renamed, disabled, locked, expired, etc) will not take effect until
 they logout and log back into the web application. Any group membership changes that affect roles will not be noticed 
 after the initial login if `refresh_user_roles` is set to false.
+
+## Multiple Domain Login
+
+When you have multiple domains defined in your configuration, you may want to have users choose the domain they will
+authenticate against on login. This can be done by defining a `<select>` element in your login form that contains a list
+of options whose values are the FQDN of the domains in your config. This element must have an ID of `_ldap_domain`:
+
+```html
+<form action="{{ path('login') }}" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="_username" value="{{ last_username }}" />
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="_password" />
+    <label for="_ldap_domain">Domain:</label>
+    <select id="_ldap_domain" name="_ldap_domain">
+        <option value="example.local" selected="selected">Example</option>
+        <option value="domain2.local">Domain 2</option>
+    </select>
+
+    <button type="submit">login</button>
+</form>
+```
