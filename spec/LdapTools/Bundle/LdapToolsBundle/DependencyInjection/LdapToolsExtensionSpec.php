@@ -138,8 +138,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
         $userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleLdapType', [LdapObjectType::GROUP])->shouldBeCalled();
-        $userProvider->addMethodCall('setRefreshAttributes', [true])->shouldBeCalled();
-        $userProvider->addMethodCall('setRefreshRoles', [true])->shouldBeCalled();
+        $userProvider->addMethodCall('setRefreshAttributes', [false])->shouldBeCalled();
+        $userProvider->addMethodCall('setRefreshRoles', [false])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleAttributeMap', [["name" => "name", "sid" => "sid", "guid" => "guid", "members" => "members"]])->shouldBeCalled();
 
         $this->load($this->config, $container);

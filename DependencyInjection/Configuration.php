@@ -218,9 +218,9 @@ class Configuration implements ConfigurationInterface
                             ->end()
                         ->end()
                     ->booleanNode('refresh_user_attributes')
-                        ->info('Set this to false if you do not want user attributes re-queried on a user refresh.')->defaultTrue()->end()
+                        ->info('Set this to true if you want user attributes re-queried on a user refresh.')->defaultFalse()->end()
                     ->booleanNode('refresh_user_roles')
-                        ->info('Set this to false if you do not want user roles re-queried on a user refresh.')->defaultTrue()->end()
+                        ->info('Set this to true if you want user roles re-queried on a user refresh.')->defaultFalse()->end()
                     ->end()
                 ->end()
             ->end();

@@ -206,30 +206,31 @@ class LdapLoginListener
 
 ## User Refresh Settings
 
-When Symfony processes a request it will "refresh" the authenticated user using your user provider. If you are using
-this bundles LDAP user provider, then this means it will query LDAP for your user and any roles associated with them.
-You may want more control over this process depending on the size of your application/environment to reduce the amount
-queries against LDAP.
+When Symfony processes a request it will attempt to "refresh" the authenticated user using your user provider. If you are
+using this bundles LDAP user provider, it will not refresh the user by default to reduce the amount of LDAP queries
+against your LDAP server. This means if you want the app to re-query LDAP for your user and any roles associated with 
+them on each request you have to change some settings:
 
-There are two settings to control this. Both are enabled by default:
+Both of these settings are set to `false` by default:
 
 ```yaml
 # app/config/config.yml
 
 ldap_tools:
     security:
-        # Set this to false if you do not want user attributes queried on each request.
-        refresh_user_attributes: false
-        # Set this to false if you do not want user roles queried on each request.
-        refresh_user_roles: false
+        # Set this to true if you want user attributes re-queried on each request.
+        refresh_user_attributes: true
+        # Set this to true if you want user roles re-queried on each request.
+        refresh_user_roles: true
 
     # ...
 ```
 
-Setting both of the above to false means no LDAP queries will be performed for the user while they are still logged in.
-Any changes in LDAP (such as their account being renamed, disabled, locked, expired, etc) will not take effect until
-they logout and log back into the web application. Any group membership changes that affect roles will not be noticed 
-after the initial login if `refresh_user_roles` is set to false.
+Having both of these set to true by default means no LDAP queries will be performed for the user while they are still 
+logged in. Any changes in LDAP (such as their account being renamed, disabled, locked, expired, etc) will not take effect
+until they logout and log back into the web application. Any group membership changes that affect roles will not be 
+noticed  after the initial login. To change this behavior modify the above settings as needed. However, this may
+effect application performance and the load against your LDAP server depending on the size of your app.
 
 ## Multiple Domain Login
 
