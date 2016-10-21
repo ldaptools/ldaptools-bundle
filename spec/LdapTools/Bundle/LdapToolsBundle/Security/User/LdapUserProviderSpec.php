@@ -28,41 +28,6 @@ use Symfony\Component\Security\Core\User\User;
 
 class LdapUserProviderSpec extends ObjectBehavior
 {
-    /**
-     * @var LdapManager
-     */
-    protected $ldap;
-
-    /**
-     * @var LdapQueryBuilder
-     */
-    protected $qb;
-
-    /**
-     * @var LdapQuery
-     */
-    protected $query;
-
-    /**
-     * @var LdapConnectionInterface
-     */
-    protected $connection;
-
-    /**
-     * @var DomainConfiguration
-     */
-    protected $config;
-
-    /**
-     * @var ADFilterBuilder
-     */
-    protected $filter;
-
-    /**
-     * @var LdapObject
-     */
-    protected $ldapObject;
-
     protected $attr = [
         'username' => 'foo',
         'locked' => false,
@@ -73,13 +38,7 @@ class LdapUserProviderSpec extends ObjectBehavior
         'groups' => ['foo', 'bar']
     ];
 
-    /**
-     * @param \LdapTools\LdapManager $ldap
-     * @param \LdapTools\Query\LdapQueryBuilder $qb
-     * @param \LdapTools\Query\LdapQuery $query
-     * @param \LdapTools\Connection\LdapConnectionInterface $connection
-     */
-    function let($ldap, $qb, $query, $connection)
+    function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query, LdapConnectionInterface $connection)
     {
         $groups = new LdapObjectCollection();
         $groups->add(new LdapObject(['name' => 'Foo', 'dn' => 'cn=Foo,dc=example,dc=local']));
@@ -102,15 +61,11 @@ class LdapUserProviderSpec extends ObjectBehavior
             'groups' => 'groups',
             'stringRepresentation' => 'username',
         ];
-        $this->ldap = $ldap;
-        $this->qb = $qb;
-        $this->query = $query;
-        $this->connection = $connection;
-        $this->config = new DomainConfiguration('foo.bar');
-        $this->filter = new ADFilterBuilder();
+        $config = new DomainConfiguration('foo.bar');
+        $filter = new ADFilterBuilder();
 
-        $this->ldapObject = new LdapObject($this->attr, ['user'], ['user'], 'user');
-        $query->getSingleResult()->willReturn($this->ldapObject);
+        $ldapObject = new LdapObject($this->attr, ['user'], ['user'], 'user');
+        $query->getSingleResult()->willReturn($ldapObject);
         $query->getResult()->willReturn($groups);
         $query->getArrayResult()->willReturn([
             ['name' => 'foo'],
@@ -124,12 +79,12 @@ class LdapUserProviderSpec extends ObjectBehavior
         $qb->select('name')->willReturn($qb);
         $qb->where(['username' => 'foo'])->willReturn($qb);
         $qb->getLdapQuery()->willReturn($query);
-        $qb->filter()->willReturn($this->filter);
-        $qb->where($this->filter->hasMemberRecursively($this->attr['guid'], 'members'))->willReturn($qb);
-        $this->ldap->buildLdapQuery()->willReturn($qb);
+        $qb->filter()->willReturn($filter);
+        $qb->where($filter->hasMemberRecursively($this->attr['guid'], 'members'))->willReturn($qb);
+        $ldap->buildLdapQuery()->willReturn($qb);
 
-        $connection->getConfig()->willReturn($this->config);
-        $this->ldap->getConnection()->willReturn($connection);
+        $connection->getConfig()->willReturn($config);
+        $ldap->getConnection()->willReturn($connection);
 
         $this->beConstructedWith($ldap, $attrMap, $roleMap, true);
     }
@@ -151,23 +106,23 @@ class LdapUserProviderSpec extends ObjectBehavior
         $this->loadUserByUsername('foo')->getRoles()->shouldContain('FOOBAR');
     }
 
-    function it_should_not_set_a_default_role_if_it_is_set_to_null()
+    function it_should_not_set_a_default_role_if_it_is_set_to_null($query)
     {
         $this->setDefaultRole(null);
-        $this->query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'Test'])));
+        $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'Test'])));
 
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
     }
 
-    function it_should_set_the_roles_properly_for_the_returned_groups()
+    function it_should_set_the_roles_properly_for_the_returned_groups($query)
     {
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME', 'ROLE_ADMIN', 'ROLE_DN', 'ROLE_SID']);
 
-        $this->query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo'])));
+        $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo'])));
 
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME']);
 
-        $this->query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo.bar'])));
+        $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo.bar'])));
 
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
     }
@@ -181,22 +136,19 @@ class LdapUserProviderSpec extends ObjectBehavior
         $this->shouldThrow('\Exception')->duringSetUserClass('foo');
     }
 
-    function it_should_set_additional_attributes_to_select()
+    function it_should_set_additional_attributes_to_select($qb)
     {
         $this->setAttributes(['foo']);
-        $this->qb->select(["username", "locked", "accountExpirationDate", "disabled", "passwordMustChange", "guid", "groups", "username", "foo"])
-            ->shouldBeCalled()->willReturn($this->qb);
+        $qb->select(["username", "locked", "accountExpirationDate", "disabled", "passwordMustChange", "guid", "groups", "username", "foo"])
+            ->shouldBeCalled()->willReturn($qb);
 
         $this->loadUserByUsername('foo')->shouldBeAnInstanceOf('\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser');
     }
 
-    /**
-     * @param \LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser $user
-     */
-    function it_should_refresh_a_user_by_their_guid($user)
+    function it_should_refresh_a_user_by_their_guid($qb, LdapUser $user)
     {
         $user->getLdapGuid()->shouldBeCalled()->willReturn($this->attr['guid']);
-        $this->qb->where(['guid' => $this->attr['guid']])->shouldBeCalled()->willReturn($this->qb);
+        $qb->where(['guid' => $this->attr['guid']])->shouldBeCalled()->willReturn($qb);
 
         $this->refreshUser($user)->shouldBeAnInstanceOf('\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser');
     }
@@ -213,51 +165,51 @@ class LdapUserProviderSpec extends ObjectBehavior
         $this->supportsClass('\Symfony\Component\Security\Core\User\User')->shouldBeEqualTo(false);
     }
 
-    function it_should_throw_a_user_not_found_exception_if_no_user_is_returned_from_ldap()
+    function it_should_throw_a_user_not_found_exception_if_no_user_is_returned_from_ldap($query)
     {
-        $this->query->getSingleResult()->willThrow(new EmptyResultException());
+        $query->getSingleResult()->willThrow(new EmptyResultException());
 
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\UsernameNotFoundException')
             ->duringLoadUserByUsername('foo');
     }
 
-    function it_should_throw_a_user_not_found_exception_if_too_many_results_are_returned_from_ldap()
+    function it_should_throw_a_user_not_found_exception_if_too_many_results_are_returned_from_ldap($query)
     {
-        $this->query->getSingleResult()->willThrow(new MultiResultException());
+        $query->getSingleResult()->willThrow(new MultiResultException());
 
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\UsernameNotFoundException')
             ->duringLoadUserByUsername('foo');
     }
 
-    function it_should_be_able_to_set_the_ldap_object_type_to_use_for_the_search()
+    function it_should_be_able_to_set_the_ldap_object_type_to_use_for_the_search($qb)
     {
         $this->setLdapObjectType('foobar');
-        $this->qb->from('foobar')->shouldBeCalled()->willReturn($this->qb);
+        $qb->from('foobar')->shouldBeCalled()->willReturn($qb);
 
         $this->loadUserByUsername('foo');
     }
 
-    function it_should_be_able_to_set_the_ldap_search_base_when_searching_for_the_user()
+    function it_should_be_able_to_set_the_ldap_search_base_when_searching_for_the_user($qb)
     {
         $searchBase = 'ou=employees,dc=foo,dc=bar';
         $this->setSearchBase($searchBase);
-        $this->qb->setBaseDn($searchBase)->shouldBeCalled()->willReturn($this->qb);
+        $qb->setBaseDn($searchBase)->shouldBeCalled()->willReturn($qb);
 
         $this->loadUserByUsername('foo');
     }
     
-    function it_should_set_the_ldap_type_for_the_role_query()
+    function it_should_set_the_ldap_type_for_the_role_query($qb)
     {
         $this->setRoleLdapType('foo');
-        $this->qb->from('foo')->shouldBeCalled()->willReturn($this->qb);
+        $qb->from('foo')->shouldBeCalled()->willReturn($qb);
 
         $this->loadUserByUsername('foo');
     }
 
-    function it_should_set_the_attribute_map_for_the_role_query()
+    function it_should_set_the_attribute_map_for_the_role_query($qb)
     {
         $this->setRoleAttributeMap(['members' => 'members', 'name' => 'cn', 'guid' => 'foo', 'sid' => 'bar']);
-        $this->qb->select(['cn', 'foo', 'bar'])->shouldBeCalled()->willReturn($this->qb);
+        $qb->select(['cn', 'foo', 'bar'])->shouldBeCalled()->willReturn($qb);
 
         $this->loadUserByUsername('foo');
     }

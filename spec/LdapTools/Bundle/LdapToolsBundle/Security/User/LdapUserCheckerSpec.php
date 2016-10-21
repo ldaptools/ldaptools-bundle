@@ -14,7 +14,6 @@ use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Connection\ADResponseCodes;
 use LdapTools\Connection\LdapConnection;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapUserCheckerSpec extends ObjectBehavior
 {

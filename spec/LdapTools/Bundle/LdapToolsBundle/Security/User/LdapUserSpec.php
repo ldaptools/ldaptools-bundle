@@ -12,15 +12,9 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Security\User;
 
 use LdapTools\Object\LdapObject;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
 
 class LdapUserSpec extends ObjectBehavior
 {
-    /**
-     * @var LdapObject
-     */
-    protected $ldapObject;
-
     function let()
     {
         $attributes = [
@@ -35,8 +29,7 @@ class LdapUserSpec extends ObjectBehavior
             'guid' => '39ff94c0-d84f-4b5d-9d63-94439e533949',
             'locked' => false
         ];
-        $this->ldapObject = new LdapObject($attributes, ['user'], 'user', 'user');
-        $this->beConstructedWith($this->ldapObject);
+        $this->beConstructedWith(new LdapObject($attributes, ['user'], 'user'));
     }
 
     function it_is_initializable()
