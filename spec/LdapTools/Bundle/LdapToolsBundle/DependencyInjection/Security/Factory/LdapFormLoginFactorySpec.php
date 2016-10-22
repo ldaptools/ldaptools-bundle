@@ -12,8 +12,9 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Security\Fac
 
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpKernel\Kernel;
 
 class LdapFormLoginFactorySpec extends ObjectBehavior
 {
@@ -27,12 +28,7 @@ class LdapFormLoginFactorySpec extends ObjectBehavior
         $this->getKey()->shouldBeEqualTo('ldap-tools-form');
     }
 
-    /**
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
-     * @param \Symfony\Component\DependencyInjection\Definition $upDefinition
-     * @param \Symfony\Component\DependencyInjection\Definition $definition
-     */
-    function it_should_create_the_listener_and_provider_ids($container, $upDefinition, $definition)
+    function it_should_create_the_listener_and_provider_ids(ContainerBuilder $container, Definition $upDefinition, Definition $definition)
     {
         $id = 'restricted';
         $entryPoint = 'foo';
