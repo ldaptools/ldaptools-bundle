@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.5.0 (2016-10-23)
+------------------
+  * By default user attributes/roles are no longer refreshed on each request. It is now configurable.
+  * Add a before and after event when loading a user from the user provider.
+  * Correct several specs, add the bump the PhpSpec version.
+  * Add more docs and examples.
+
 0.4.0 (2016-09-05)
 ------------------
   * Add a LDIF parser service. Allow tagging LDIF URL loaders to it.
