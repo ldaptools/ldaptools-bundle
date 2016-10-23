@@ -11,6 +11,7 @@
 namespace LdapTools\Bundle\LdapToolsBundle\Security;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
+use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
 use LdapTools\Exception\Exception;
 use LdapTools\Operation\AuthenticationOperation;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -122,8 +123,10 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
 
         try {
             $this->switchDomainIfNeeded($credentials);
+            $this->dispatcher->dispatch(LoadUserEvent::BEFORE, new LoadUserEvent($credentials['username'], $this->ldap->getDomainContext()));
             $user = $userProvider->loadUserByUsername($credentials['username']);
             $this->userChecker->checkPreAuth($user);
+            $this->dispatcher->dispatch(LoadUserEvent::AFTER, new LoadUserEvent($credentials['username'], $this->ldap->getDomainContext(), $user));
 
             return $user;
         } catch (UsernameNotFoundException $e) {

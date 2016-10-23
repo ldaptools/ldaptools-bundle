@@ -7,6 +7,7 @@ LDAP Authentication Provider
   * [Guard Specific Settings](#guard-specific-settings)
   * [Show Detailed Login Errors](#hideshow-detailed-login-errors)
   * [LDAP Login Event](#successful-login-event)
+  * [Load User Events](#load-user-events)
   * [User Refresh Settings](#user-refresh-settings)
   * [Multiple Domain Login](#multiple-domain-login)
 
@@ -202,6 +203,58 @@ class LdapLoginListener
         class: AppBundle\Event\LdapLoginListener
         tags:
             - { name: kernel.event_listener, event: ldap_tools_bundle.login.success, method: onLdapLoginSuccess }
+```
+
+## Load User Events
+
+Before and after a user is loaded from the user provider by their username a `ldap_tools_bundle.user_load.before` event
+and `ldap_tools_bundle.user_load.after` is called (respectively). You can call the `getUsername()` or `getDomain()` method 
+of the before or after event. For the after event you can call `getUser()` to get the user instance that was loaded. This is 
+most useful when using a separate bundle for the user provider, such as the FOSUserBundle, and gives you more fine-grained
+control over the process.
+ 
+#### 1. Create the event listener class.
+ 
+```
+namespace AppBundle\Event;
+
+use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
+
+class LoadUserListener
+{
+    public function beforeLoadUser(LoadUserEvent $event)
+    {
+        // Get the username to be loaded...
+        $username = $event->getUsername();
+        // Get the domain for the username...
+        $domain = $event->getDomain();
+        
+        // Do something with the username/domain before it hits the user provider...
+    }
+    
+    public function afterLoadUser(LoadUserEvent $event)
+    {
+        // Get the username that was loaded...
+        $username = $event->getUsername();
+        // Get the domain for the username...
+        $domain = $event->getDomain();
+        // Get the actual user instance...
+        $user = $event->getUser();
+        
+        // Do something with the user/username/domain before it is authenticated...
+    }
+}
+```
+
+#### 2. Create and tag the above class as a service.
+
+```yaml
+# app/config/services.yml
+    app.event.login_listener:
+        class: AppBundle\Event\LoadUserListener
+        tags:
+            - { name: kernel.event_listener, event: ldap_tools_bundle.load_user.before, method: beforeLoadUser }
+            - { name: kernel.event_listener, event: ldap_tools_bundle.load_user.after, method: afterLoadUser }
 ```
 
 ## User Refresh Settings

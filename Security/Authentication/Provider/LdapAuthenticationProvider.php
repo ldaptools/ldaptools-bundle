@@ -11,6 +11,7 @@
 namespace LdapTools\Bundle\LdapToolsBundle\Security\Authentication\Provider;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
+use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\LdapManager;
@@ -94,8 +95,10 @@ class LdapAuthenticationProvider implements AuthenticationProviderInterface
         $this->switchDomainIfNeeded($token);
 
         try {
+            $this->dispatcher->dispatch(LoadUserEvent::BEFORE, new LoadUserEvent($token->getUsername(), $this->ldap->getDomainContext()));
             $user = $this->userProvider->loadUserByUsername($token->getUsername());
             $this->userChecker->checkPreAuth($user);
+            $this->dispatcher->dispatch(LoadUserEvent::AFTER, new LoadUserEvent($token->getUsername(), $this->ldap->getDomainContext(), $user));
             $token = $this->doAuthentication($user, $token);
             $this->userChecker->checkPostAuth($user);
         } catch (UsernameNotFoundException $e) {

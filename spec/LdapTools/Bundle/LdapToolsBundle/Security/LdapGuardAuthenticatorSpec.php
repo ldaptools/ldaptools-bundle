@@ -11,6 +11,7 @@
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Security;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
+use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Connection\ADResponseCodes;
@@ -106,7 +107,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->getCredentials($this->request)->shouldBeNull();
     }
 
-    function it_should_get_a_user_object(UserProviderInterface $up, $ldap)
+    function it_should_get_a_user_object(UserProviderInterface $up, $ldap, $dispatcher)
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
@@ -114,6 +115,8 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
 
         $ldap->switchDomain(Argument::any())->shouldNotBeCalled();
         $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
+        $dispatcher->dispatch('ldap_tools_bundle.load_user.before', new LoadUserEvent('foo', 'foo.bar'))->shouldBeCalled();
+        $dispatcher->dispatch('ldap_tools_bundle.load_user.after', new LoadUserEvent('foo', 'foo.bar', $user))->shouldBeCalled();
 
         $this->getUser($this->credentials, $up)->shouldBeEqualTo($user);
     }
@@ -308,7 +311,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
 
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
         $this->checkCredentials($credentials, $user)->shouldReturn(true);
-        
+
         $dispatcher->dispatch('ldap_tools_bundle.login.success', new LdapLoginEvent($user, $token))->shouldBeCalled();
     }
 }
