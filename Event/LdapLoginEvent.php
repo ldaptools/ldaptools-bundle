@@ -36,6 +36,7 @@ class LdapLoginEvent extends Event
      * @var TokenInterface
      */
     protected $token;
+
     /**
      * @param UserInterface|LdapUser $user
      * @param TokenInterface $token

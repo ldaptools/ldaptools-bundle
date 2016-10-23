@@ -171,7 +171,7 @@ class LdapUserProvider implements UserProviderInterface
 
     /**
      * Set the LdapTools object type to search for group membership.
-     * 
+     *
      * @param string $type
      */
     public function setRoleLdapType($type)
@@ -181,7 +181,7 @@ class LdapUserProvider implements UserProviderInterface
 
     /**
      * Set the attribute name to LDAP name attributes used in querying LDAP groups for roles.
-     * 
+     *
      * @param array $map
      */
     public function setRoleAttributeMap(array $map)
@@ -318,7 +318,7 @@ class LdapUserProvider implements UserProviderInterface
     /**
      * Check all of the groups that are valid for a specific role against all of the LDAP groups that the user belongs
      * to.
-     * 
+     *
      * @param array $roleGroups
      * @param LdapObjectCollection $ldapGroups
      * @return bool
@@ -346,7 +346,7 @@ class LdapUserProvider implements UserProviderInterface
 
     /**
      * Check each LDAP group to see if any of them have an attribute with a specific value.
-     * 
+     *
      * @param LdapObjectCollection $groups
      * @param string $attribute
      * @param string $value

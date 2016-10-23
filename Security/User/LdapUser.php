@@ -229,7 +229,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
 
     /**
      * Temporary BC method for LdapObject construction.
-     * 
+     *
      * @todo remove this at some point. This is to check for instances where the class/category was in the constructor.
      * @param LdapObject $ldapObject
      * @return array

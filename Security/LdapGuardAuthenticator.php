@@ -278,7 +278,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         if ($this->hideUserNotFoundExceptions) {
             throw new BadCredentialsException('Bad credentials.', 0, $e);
         }
-        // Specifically show LdapTools related exceptions, ignore others. 
+        // Specifically show LdapTools related exceptions, ignore others.
         if (!$this->hideUserNotFoundExceptions && $e instanceof Exception) {
             throw new CustomUserMessageAuthenticationException($e->getMessage(), [], $e->getCode());
         }

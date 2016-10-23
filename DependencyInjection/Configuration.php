@@ -121,8 +121,12 @@ class Configuration implements ConfigurationInterface
                     ->arrayNode('servers')
                         ->info('The LDAP servers to connect to. This is queried from DNS if not provided.')
                         ->beforeNormalization()
-                            ->ifTrue(function ($v) { return !is_array($v); })
-                            ->then(function ($v) { return [$v]; })
+                            ->ifTrue(function ($v) {
+                                return !is_array($v);
+                            })
+                            ->then(function ($v) {
+                                return [$v];
+                            })
                             ->end()
                         ->prototype('scalar')->end()
                         ->end()
@@ -199,8 +203,12 @@ class Configuration implements ConfigurationInterface
                         ->useAttributeAsKey('name')
                         ->prototype('array')
                         ->beforeNormalization()
-                            ->ifTrue(function ($v) { return !is_array($v); })
-                            ->then(function ($v) { return [$v]; })
+                            ->ifTrue(function ($v) {
+                                return !is_array($v);
+                            })
+                            ->then(function ($v) {
+                                return [$v];
+                            })
                             ->end()
                         ->prototype('scalar')->end()
                         ->end()
