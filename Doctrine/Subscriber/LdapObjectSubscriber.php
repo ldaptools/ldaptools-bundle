@@ -228,12 +228,12 @@ class LdapObjectSubscriber implements EventSubscriber
         // A single LdapObject type...
         if (is_string($values) && !empty($values)) {
             $query->where([$annotation->id => $values]);
-            // A LdapObjectCollection type...
+        // A LdapObjectCollection type...
         } elseif (is_array($values) && !empty($values)) {
             foreach ($values as $value) {
                 $query->orWhere([$annotation->id => $value]);
             }
-            // A currently null/empty value?
+        // A currently null/empty value?
         } else {
             return null;
         }
