@@ -43,8 +43,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->from("user")->shouldBeCalled()->willReturn($qb);
 
         $collection = new LdapObjectCollection(
-            new LdapObject(['name' => 'foo', 'guid' => '123'], ['user'], 'user', 'user'),
-            new LdapObject(['name' => 'bar', 'guid' => '456'], ['user'], 'user', 'user')
+            new LdapObject(['name' => 'foo', 'guid' => '123'], 'user'),
+            new LdapObject(['name' => 'bar', 'guid' => '456'], 'user')
         );
         $query->getResult()->shouldBeCalled()->willReturn($collection);
 
@@ -58,8 +58,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->from("user")->shouldBeCalled()->willReturn($qb);
 
         $collection = new LdapObjectCollection(
-            new LdapObject(['name' => 'foo', 'guid' => '123'], ['user'], 'user', 'user'),
-            new LdapObject(['name' => 'bar', 'guid' => '456'], ['user'], 'user', 'user')
+            new LdapObject(['name' => 'foo', 'guid' => '123'], 'user'),
+            new LdapObject(['name' => 'bar', 'guid' => '456'], 'user')
         );
         $query->getResult()->shouldBeCalledTimes(1)->willReturn($collection);
 
@@ -77,8 +77,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->from("group")->shouldBeCalled()->willReturn($qb);
 
         $collection = new LdapObjectCollection(
-            new LdapObject(['upn' => 'foo', 'sid' => '123'], ['group'], 'group', 'group'),
-            new LdapObject(['upn' => 'bar', 'sid' => '456'], ['group'], 'group', 'group')
+            new LdapObject(['upn' => 'foo', 'sid' => '123'], 'group'),
+            new LdapObject(['upn' => 'bar', 'sid' => '456'], 'group')
         );
         $query->getResult()->shouldBeCalled()->willReturn($collection);
 
@@ -91,8 +91,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->getLdapQuery()->shouldBeCalled()->willReturn($query);
 
         $collection = new LdapObjectCollection(
-            new LdapObject(['upn' => 'foo', 'sid' => '123'], ['group'], 'group', 'group'),
-            new LdapObject(['upn' => 'bar', 'sid' => '456'], ['group'], 'group', 'group')
+            new LdapObject(['upn' => 'foo', 'sid' => '123'], 'group'),
+            new LdapObject(['upn' => 'bar', 'sid' => '456'], 'group')
         );
         $query->getResult()->shouldBeCalled()->willReturn($collection);
 
@@ -111,8 +111,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->from("group")->shouldBeCalled()->willReturn($qb);
 
         $collection = new LdapObjectCollection(
-            new LdapObject(['upn' => 'foo', 'sid' => '123'], ['group'], 'group', 'group'),
-            new LdapObject(['upn' => 'bar', 'sid' => '456'], ['group'], 'group', 'group')
+            new LdapObject(['upn' => 'foo', 'sid' => '123'], 'group'),
+            new LdapObject(['upn' => 'bar', 'sid' => '456'], 'group')
         );
         $query->getResult()->shouldBeCalled()->willReturn($collection);
 
@@ -125,8 +125,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
     function it_should_load_values_for_choices($qb, $query)
     {
         $collection = new LdapObjectCollection(
-            new LdapObject(['name' => 'foo', 'guid' => '123'], ['user'], 'user', 'user'),
-            new LdapObject(['name' => 'bar', 'guid' => '456'], ['user'], 'user', 'user')
+            new LdapObject(['name' => 'foo', 'guid' => '123'], 'user'),
+            new LdapObject(['name' => 'bar', 'guid' => '456'], 'user')
         );
 
         $this->loadValuesForChoices($collection->toArray())->shouldBeEqualTo(['123', '456']);
@@ -135,8 +135,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->from("user")->shouldBeCalled()->willReturn($qb);
 
         $collection = new LdapObjectCollection(
-            new LdapObject(['name' => 'foo', 'guid' => '123'], ['user'], 'user', 'user'),
-            new LdapObject(['name' => 'bar', 'guid' => '456'], ['user'], 'user', 'user')
+            new LdapObject(['name' => 'foo', 'guid' => '123'], 'user'),
+            new LdapObject(['name' => 'bar', 'guid' => '456'], 'user')
         );
         $query->getResult()->shouldBeCalled()->willReturn($collection);
 
@@ -149,8 +149,8 @@ class LdapObjectChoiceLoaderSpec extends ObjectBehavior
         $qb->select(['guid', 'name'])->shouldBeCalled()->willReturn($qb);
         $qb->from("user")->shouldBeCalled()->willReturn($qb);
 
-        $user1 = new LdapObject(['name' => 'foo', 'guid' => '123'], ['user'], 'user', 'user');
-        $user2 = new LdapObject(['name' => 'bar', 'guid' => '456'], ['user'], 'user', 'user');
+        $user1 = new LdapObject(['name' => 'foo', 'guid' => '123'], 'user');
+        $user2 = new LdapObject(['name' => 'bar', 'guid' => '456'], 'user');
         $collection = new LdapObjectCollection(
             $user1,
             $user2
