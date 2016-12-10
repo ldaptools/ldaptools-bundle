@@ -42,6 +42,7 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('ldap_tools');
         $this->addMainSection($rootNode);
+        $this->addDoctrineSection($rootNode);
         $this->addGeneralSection($rootNode);
         $this->addLdapDomainsSection($rootNode);
         $this->addSecuritySection($rootNode);
@@ -57,6 +58,35 @@ class Configuration implements ConfigurationInterface
         $node->children()
             ->booleanNode('logging')->defaultValue($this->debug)->end()
             ->booleanNode('profiling')->defaultValue($this->debug)->end()
+            ->end();
+    }
+
+    /**
+     * @param ArrayNodeDefinition $node
+     */
+    protected function addDoctrineSection(ArrayNodeDefinition $node)
+    {
+        $node
+            ->children()
+            ->arrayNode('doctrine')
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->booleanNode('integration_enabled')->defaultTrue()
+                        ->info('Whether or not Doctrine integration should be used (adds a subscriber for lifecycle events)')->end()
+                    ->arrayNode('connections')
+                        ->info('Only use doctrine integration on a specific connection name(s)')
+                        ->beforeNormalization()
+                            ->ifTrue(function ($v) {
+                                return !is_array($v);
+                            })
+                            ->then(function ($v) {
+                                return [$v];
+                            })
+                            ->end()
+                        ->prototype('scalar')->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
     }
 

@@ -39,6 +39,10 @@ class LdapToolsExtensionSpec extends ObjectBehavior
      */
     protected $config = [
         'ldap_tools' => [
+            'doctrine' => [
+                'integration_enabled' => true,
+                'connections' => [ null ],
+            ],
             'general' => [
                 'default_domain' => 'foo.bar',
             ],
@@ -122,7 +126,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
         // Sets these by default when a domain is defined...
         $cacheWarmer->addTag("kernel.cache_warmer")->shouldBeCalled();
-        $doctrineEvents->addTag("doctrine.event_subscriber", ["connection" => "default"])->shouldBeCalled();
+        $doctrineEvents->addTag("doctrine.event_subscriber")->shouldBeCalled();
 
         // Expected parameter settings...
         $container->setParameter('ldap_tools.security.default_attributes', $this->attrMap)->shouldBeCalled();
@@ -207,6 +211,35 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         // Should not be set when there are no domains...
         $cacheWarmer->addTag(Argument::any())->shouldNotBeCalled();
         $doctrineEvents->addTag(Argument::any(), Argument::any())->shouldNotBeCalled();
+
+        $this->load($config, $container);
+    }
+
+    function it_should_not_add_the_doctrine_event_subscriber_if_it_is_set_to_be_disabled($doctrineEvents, $container, Definition $def)
+    {
+        $config = $this->config;
+        $config['ldap_tools']['doctrine']['integration_enabled'] = false;
+
+        $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->getDefinition(Argument::any())->willReturn($def);
+        $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
+
+        $doctrineEvents->addTag(Argument::any(), Argument::any())->shouldNotBeCalled();
+
+        $this->load($config, $container);
+    }
+
+    function it_should_integrate_with_only_specific_doctrine_connections_if_specified($doctrineEvents, $container, Definition $def)
+    {
+        $config = $this->config;
+        $config['ldap_tools']['doctrine']['connections'] = ['foo', 'bar'];
+
+        $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->getDefinition(Argument::any())->willReturn($def);
+        $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
+
+        $doctrineEvents->addTag("doctrine.event_subscriber", ['connection' => 'foo'])->shouldBeCalled();
+        $doctrineEvents->addTag("doctrine.event_subscriber", ['connection' => 'bar'])->shouldBeCalled();
 
         $this->load($config, $container);
     }

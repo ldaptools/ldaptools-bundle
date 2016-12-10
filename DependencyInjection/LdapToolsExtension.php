@@ -35,7 +35,38 @@ class LdapToolsExtension extends Extension
         $loader->load('services.xml');
 
         $this->setLdapConfigDefinition($container, $config);
+        $this->setDoctrineConfiguration($container, $config);
         $this->setSecurityConfiguration($container, $config['security']);
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     * @param array $config
+     */
+    protected function setDoctrineConfiguration(ContainerBuilder $container, array $config)
+    {
+        // If they explicitly disabled doctrine integration, do nothing...
+        if (!$config['doctrine']['integration_enabled']) {
+            return;
+        }
+        // We only tag the doctrine event subscriber if there are domains listed in the config...
+        if (!(isset($config['domains']) && !empty($config['domains']))) {
+            return;
+        }
+
+        $connections = array_filter($config['doctrine']['connections']);
+        if (empty($connections)) {
+            $container->getDefinition('ldap_tools.doctrine.event_listener.ldap_object')->addTag(
+                'doctrine.event_subscriber'
+            );
+        } else {
+            foreach ($connections as $connection) {
+                $container->getDefinition('ldap_tools.doctrine.event_listener.ldap_object')->addTag(
+                    'doctrine.event_subscriber',
+                    ['connection' => $connection]
+                );
+            }
+        }
     }
 
     /**
@@ -48,14 +79,10 @@ class LdapToolsExtension extends Extension
     {
         $ldapCfg = ['general' => $config['general']];
 
-        // Only tag the cache warmer/doctrine event subscriber if there are domains listed in the config...
+        // Only tag the cache warmer if there are domains listed in the config...
         if (isset($config['domains']) && !empty($config['domains'])) {
             $ldapCfg['domains'] = $config['domains'];
             $container->getDefinition('ldap_tools.cache_warmer.ldap_tools_cache_warmer')->addTag('kernel.cache_warmer');
-            $container->getDefinition('ldap_tools.doctrine.event_listener.ldap_object')->addTag(
-                'doctrine.event_subscriber',
-                ['connection' => 'default']
-            );
         } else {
             $container->getDefinition('data_collector.ldap_tools')->replaceArgument(0, null);
         }
