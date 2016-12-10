@@ -3,12 +3,12 @@
 
 The LdapToolsBundle provides easy integration of LDAP for Symfony via [LdapTools](https://github.com/ldaptools/ldaptools).
 
-* An LDAP authentication provider, including AdvancedUserInterface support.
-* An LDAP form type to easily use LDAP objects in forms.
+* An [LDAP authentication provider](/Resources/doc/LDAP-Authentication-Provider.md), including AdvancedUserInterface support.
+* An [LDAP form type](/Resources/doc/LDAP-Object-Form-Type.md) to easily use LDAP objects in forms.
 * An LDAP type for Doctrine to easily store and retrieve LDAP results in a Doctrine entity.
 * Logging capabilities for LDAP operations.
 * Web Debug Toolbar integration for LDAP operations.
-* Integration of LdapTools events for LDAP operations (authentication, creation, modification, etc) using service tags.
+* Integration of [LdapTools events](/Resources/doc/LDAP-Events.md) for LDAP operations (authentication, creation, modification, etc) using service tags.
 
 **Note**: The LdapTools library requires PHP 5.6+.
 
@@ -95,6 +95,7 @@ class DefaultController extends Controller
 
 ### Documentation
 
+* [Configuration Reference](/Resources/doc/Configuration-Reference.md)
 * [LDAP Authentication Provider](/Resources/doc/LDAP-Authentication-Provider.md)
 * [LDAP Authentication with the FOSUserBundle](/Resources/doc/LDAP-Authentication-With-The-FOSUserBundle.md)
 * [LDAP Object Form Type](/Resources/doc/LDAP-Object-Form-Type.md)
