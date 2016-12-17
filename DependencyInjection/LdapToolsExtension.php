@@ -112,7 +112,6 @@ class LdapToolsExtension extends Extension
         $roles = isset($config['roles']) ? $config['roles'] : [];
         $additionalAttributes = isset($config['additional_attributes']) ? $config['additional_attributes'] : [];
 
-        $container->setParameter('ldap_tools.security.default_attributes', $config['default_attributes']);
         $container->setParameter('ldap_tools.security.additional_attributes', $additionalAttributes);
         $container->setParameter('ldap_tools.security.check_groups_recursively', $config['check_groups_recursively']);
         $container->setParameter('ldap_tools.security.user', $config['user']);

@@ -18,6 +18,7 @@ class LdapUserSpec extends ObjectBehavior
     function let()
     {
         $attributes = [
+            'dn' => 'cn=chad,dc=foo,dc=bar',
             'username' => 'chad',
             'disabled' => false,
             'passwordMustChange' => false,
@@ -29,7 +30,8 @@ class LdapUserSpec extends ObjectBehavior
             'guid' => '39ff94c0-d84f-4b5d-9d63-94439e533949',
             'locked' => false
         ];
-        $this->beConstructedWith(new LdapObject($attributes, ['user'], 'user'));
+        $this->beConstructedWith();
+        $this->refresh($attributes);
     }
 
     function it_is_initializable()
@@ -118,35 +120,8 @@ class LdapUserSpec extends ObjectBehavior
         $this->getRoles()->shouldBeEqualTo(['FOO', 'BAR']);
     }
 
-    function it_should_have_a_string_representation_of_username_by_default()
+    function it_should_have_a_string_representation_of_a_dn_by_default()
     {
         $this->__toString()->shouldBeEqualTo('chad');
-    }
-
-    function it_should_allow_the_attribute_map_to_be_confgured()
-    {
-        $attributes = [
-            'upn' => 'chad@example.com',
-            'disabled' => false,
-            'passwordMustChange' => false,
-            'accountExpirationDate' => new \DateTime('2233-3-22'),
-            'groups' => [
-                'foo',
-                'bar',
-            ],
-            'guid' => '39ff94c0-d84f-4b5d-9d63-94439e533949',
-            'locked' => false
-        ];
-        $map = [
-            'username' => 'upn',
-            'stringRepresentation' => 'upn'
-        ];
-        $ldapObject = new LdapObject($attributes, ['user'], 'user', 'user');
-        $this->beConstructedWith($ldapObject, $map);
-        $this->getUsername()->shouldBeEqualTo('chad@example.com');
-        $this->setUsername('chad@foo.bar');
-        $this->getUsername()->shouldBeEqualTo('chad@foo.bar');
-        $this->__toString()->shouldBeEqualTo('chad@foo.bar');
-        $this->getGuid()->shouldBeEqualTo($attributes['guid']);
     }
 }

@@ -11,6 +11,7 @@
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
+use LdapTools\Object\LdapObject;
 use PhpSpec\ObjectBehavior;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -46,5 +47,12 @@ class LoadUserEventSpec extends ObjectBehavior
         $this->beConstructedWith('foo', 'example.local', $user);
 
         $this->getUser()->shouldBeEqualTo($user);
+    }
+
+    function it_should_allow_being_constructed_with_a_ldap_object(UserInterface $user, LdapObject $ldapObject)
+    {
+        $this->beConstructedWith('foo', 'example.local', $user, $ldapObject);
+
+        $this->getLdapObject()->shouldBeEqualTo($ldapObject);
     }
 }

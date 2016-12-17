@@ -63,7 +63,7 @@
 
         <service id="ldap_tools.security.user.ldap_user_provider" class="%ldap_tools.security.user.ldap_user_provider.class%">
             <argument type="service" id="ldap_tools.ldap_manager"/>
-            <argument>%ldap_tools.security.default_attributes%</argument>
+            <argument type="service" id="event_dispatcher"/>
             <argument>%ldap_tools.security.roles%</argument>
             <argument>%ldap_tools.security.check_groups_recursively%</argument>
             <call method="setAttributes">

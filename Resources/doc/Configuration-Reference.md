@@ -73,28 +73,6 @@ The user class that the LDAP user provider will instantiate. If you change this 
 **Default**: `LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser`
 
  ------------------
-#### default_attributes
-
-Set the default LDAP attributes mapped for the LDAP user provider class. You can replace these with any valid LDAP
-attribute or an attribute you have defined in your LdapTools schema object.
-
-**Default**:
-
-```yaml
-ldap_tools:
-    security:
-        default_attributes:
-            username: username
-            accountNonLocked: locked
-            accountNonExpired: accountExpirationDate
-            enabled: disabled
-            credentialsNonExpired: passwordMustChange
-            groups: groups
-            guid: guid
-            stringRepresentation: username
-```
-
- ------------------
 #### additional_attributes
 
 Any additional attributes you would like selected when the user is loaded from the LdapUserProvider. You can access them

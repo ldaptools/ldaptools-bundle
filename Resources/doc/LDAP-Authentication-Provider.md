@@ -4,6 +4,7 @@ LDAP Authentication Provider
   * [Symfony 2.8+](#symfony-28-use-the-guard-component)
   * [Symfony 2.3](#symfony-23-use-ldap_tools_form-custom-authentication-type)
   * [Mapping LDAP Groups to Roles](#mapping-ldap-groups-to-roles)
+  * [Mapping LDAP Attributes](#mapping-ldap-attributes)
   * [Guard Specific Settings](#guard-specific-settings)
   * [Show Detailed Login Errors](#hideshow-detailed-login-errors)
   * [LDAP Login Event](#successful-login-event)
@@ -138,6 +139,45 @@ ldap_tools:
         default_role: ROLE_APP_USER
 ```
 
+## Mapping LDAP Attributes
+
+By default this bundle uses the LdapTools `user` schema type when loading LDAP users. It needs the `username` and `guid`
+attribute mappings of that user type for the user's username and GUID. By default the LdapTools `user` schema type has
+mappings for these for both Active Directory and OpenLDAP. If you have more specific requirements you can extend the
+default user type and provide your own mappings.
+
+For instance, lets assume you are using Active Directory but want to force users to use their UPN for their username.
+You can do this as follows:
+
+1. Create a new file: `app/Resources/schema/ad.yml`.
+
+2. In the new schema file put in the following:
+
+```yaml
+# Extends the default 'ad' schema for LdapTools
+extends_default: ad
+objects:
+    # Create a special 'LoginUser' type extending the default...
+    login_user:
+        extends_default: [ 'ad', 'user' ]
+        type: 'SymfonyUser'
+        attributes:
+            username: userPrincipalName
+```
+
+3. Configure the bundle to use your custom schema and user type for the login.
+
+```yaml
+# app/config/config.yml
+ldap_tools:
+    general:
+        schema_folder: "%kernel.root_dir%/Resources/schema"
+    security:
+        ldap_object_type: 'SymfonyUser'
+```
+
+For a complete listing of possible directives you can use for a custom schema type see the [LdapTools docs](https://github.com/ldaptools/ldaptools/blob/master/docs/en/reference/Schema-Configuration.md#schema-object-configuration-options).
+
 ## Guard Specific Settings
 
 There are some guard specific settings you can configure on the `app/config.yml` file:
@@ -209,9 +249,10 @@ class LdapLoginListener
 
 Before and after a user is loaded from the user provider by their username a `ldap_tools_bundle.user_load.before` event
 and `ldap_tools_bundle.user_load.after` is called (respectively). You can call the `getUsername()` or `getDomain()` method 
-of the before or after event. For the after event you can call `getUser()` to get the user instance that was loaded. This is 
-most useful when using a separate bundle for the user provider, such as the FOSUserBundle, and gives you more fine-grained
-control over the process.
+of the before or after event. For the after event you can call `getUser()` to get the user instance that was loaded, and
+you can use the `getLdapObject()` method to get the LDAP object that the user was loaded from. This is most useful when 
+using a separate bundle for the user provider, such as the FOSUserBundle, and gives you more fine-grained control over 
+the process.
  
 #### 1. Create the event listener class.
  
@@ -240,8 +281,13 @@ class LoadUserListener
         $domain = $event->getDomain();
         // Get the actual user instance...
         $user = $event->getUser();
+        // Get the LDAP object the user was loaded from...
+        $ldapObject = $event->getLdapObject();
         
-        // Do something with the user/username/domain before it is authenticated...
+        // Do something with the user/username/domain/LDAP attributes before it is authenticated...
+        foreach($ldapObject->toArray() as $attribute => $value) {
+            # ...
+        }
     }
 }
 ```

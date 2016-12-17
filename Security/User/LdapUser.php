@@ -18,37 +18,16 @@ use Symfony\Component\Security\Core\User\AdvancedUserInterface;
  *
  * @author Chad Sikorra <Chad.Sikorra@gmail.com>
  */
-class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializable
+class LdapUser extends LdapObject implements LdapUserInterface, AdvancedUserInterface, \Serializable
 {
     /**
      * @var array The Symfony roles for this user.
      */
     protected $roles = [];
 
-    /**
-     * @var string The attribute that the username is mapped to.
-     */
-    protected $attrMap = [
-        'username' => 'username',
-        'accountNonLocked' => 'locked',
-        'accountNonExpired' => 'accountExpirationDate',
-        'enabled' => 'disabled',
-        'credentialsNonExpired' => 'passwordMustChange',
-        'guid' => 'guid',
-        'groups' => 'groups',
-        'stringRepresentation' => 'username',
-    ];
-
-    /**
-     * @param LdapObject $ldapObject
-     * @param array $attrMap
-     */
-    public function __construct(LdapObject $ldapObject, array $attrMap = [])
+    public function __construct()
     {
-        if (!empty($attrMap)) {
-            $this->attrMap = array_merge($this->attrMap, $attrMap);
-        }
-        parent::__construct(...$this->getParentArgs($ldapObject));
+        parent::__construct([]);
     }
 
     /**
@@ -129,7 +108,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function getUsername()
     {
-        return $this->get($this->attrMap['username']);
+        return $this->get('username');
     }
 
     /**
@@ -137,7 +116,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function setUsername($username)
     {
-        return $this->set($this->attrMap['username'], $username);
+        return $this->set('username', $username);
     }
 
     /**
@@ -145,12 +124,12 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function isAccountNonExpired()
     {
-        if (!$this->has($this->attrMap['accountNonExpired']) || $this->get($this->attrMap['accountNonExpired']) === false) {
+        if (!$this->has('accountExpirationDate') || $this->get('accountExpirationDate') === false) {
             $result = true;
-        } elseif ($this->get($this->attrMap['accountNonExpired']) instanceof \DateTime) {
-            $result = ($this->get($this->attrMap['accountNonExpired']) > new \DateTime());
+        } elseif ($this->get('accountExpirationDate') instanceof \DateTime) {
+            $result = ($this->get('accountExpirationDate') > new \DateTime());
         } else {
-            $result = (bool) $this->get($this->attrMap['accountNonExpired']);
+            $result = (bool) $this->get('accountExpirationDate');
         }
 
         return $result;
@@ -161,7 +140,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function isAccountNonLocked()
     {
-        return $this->has($this->attrMap['accountNonLocked']) ? !$this->get($this->attrMap['accountNonLocked']) : true;
+        return $this->has('locked') ? !$this->get('locked') : true;
     }
 
     /**
@@ -169,8 +148,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function isCredentialsNonExpired()
     {
-        return $this->has($this->attrMap['credentialsNonExpired']) ?
-            !$this->get($this->attrMap['credentialsNonExpired']) : true;
+        return $this->has('passwordMustChange') ? !$this->get('passwordMustChange') : true;
     }
 
     /**
@@ -178,7 +156,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function isEnabled()
     {
-        return $this->has($this->attrMap['enabled']) ? !$this->get($this->attrMap['enabled']) : true;
+        return $this->has('enabled') ? $this->get('enabled') : true;
     }
 
     /**
@@ -186,7 +164,15 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function getLdapGuid()
     {
-        return $this->get($this->attrMap['guid']);
+        return $this->get('guid');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setLdapGuid($guid)
+    {
+        return $this->set('guid', $guid);
     }
 
     /**
@@ -194,7 +180,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function getGroups()
     {
-        return $this->get($this->attrMap['groups']);
+        return $this->has('groups') ? $this->get('groups') : [];
     }
 
     /**
@@ -204,7 +190,8 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
     {
         return serialize([
             $this->attributes,
-            $this->attrMap,
+            $this->type,
+            $this->roles
         ]);
     }
 
@@ -213,10 +200,7 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function unserialize($serialized)
     {
-        list(
-            $this->attributes,
-            $this->attrMap
-            ) = unserialize($serialized);
+        list($this->attributes, $this->type, $this->roles) = unserialize($serialized);
     }
 
     /**
@@ -224,26 +208,6 @@ class LdapUser extends LdapObject implements AdvancedUserInterface, \Serializabl
      */
     public function __toString()
     {
-        return (string) $this->get($this->attrMap['stringRepresentation']);
-    }
-
-    /**
-     * Temporary BC method for LdapObject construction.
-     *
-     * @todo remove this at some point. This is to check for instances where the class/category was in the constructor.
-     * @param LdapObject $ldapObject
-     * @return array
-     */
-    protected function getParentArgs(LdapObject $ldapObject)
-    {
-        $constructor = (new \ReflectionClass(get_parent_class()))->getConstructor();
-        
-        if ($constructor->getNumberOfParameters() == 2) {
-            $args = [$ldapObject->toArray(), $ldapObject->getType()];
-        } else {
-            $args = [$ldapObject->toArray(), [], '', $ldapObject->getType()];
-        }
-        
-        return $args;
+        return $this->getUsername();
     }
 }

@@ -107,16 +107,14 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->getCredentials($this->request)->shouldBeNull();
     }
 
-    function it_should_get_a_user_object(UserProviderInterface $up, $ldap, $dispatcher)
+    function it_should_get_a_user_object(UserProviderInterface $up, $ldap)
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['username' => 'foo', 'guid' => 'bar']);
 
         $ldap->switchDomain(Argument::any())->shouldNotBeCalled();
         $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
-        $dispatcher->dispatch('ldap_tools_bundle.load_user.before', new LoadUserEvent('foo', 'foo.bar'))->shouldBeCalled();
-        $dispatcher->dispatch('ldap_tools_bundle.load_user.after', new LoadUserEvent('foo', 'foo.bar', $user))->shouldBeCalled();
 
         $this->getUser($this->credentials, $up)->shouldBeEqualTo($user);
     }
@@ -161,17 +159,17 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $credentials['ldap_domain'] = '';
         $this->beConstructedWith(false, $this->userChecker, $ldap, $router, $dispatcher);
         
-        $user = new LdapUser(new LdapObject([
+        $user = (new LdapUser())->refresh([
             'username' => 'foo',
-            'disabled' => true,
-        ]));
+            'enabled' => false,
+        ]);
         $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\DisabledException')->duringGetUser($this->credentials, $up);
 
-        $user = new LdapUser(new LdapObject([
+        $user = (new LdapUser())->refresh([
             'username' => 'foo',
             'locked' => true,
-        ]));
+        ]);
         $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\LockedException')->duringGetUser($this->credentials, $up);
     }
@@ -192,7 +190,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['username' => 'foo', 'guid' => 'foo']);
 
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
         $this->checkCredentials($credentials, $user)->shouldReturn(true);
@@ -202,7 +200,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['guid' => 'foo', 'username' => 'foo']);
 
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(false, 'foo', 1));
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\BadCredentialsException')->duringCheckCredentials($credentials, $user);
@@ -216,7 +214,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
         $this->beConstructedWith(false, $this->userChecker, $ldap, $router, $dispatcher);
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['guid' => 'foo', 'username' => 'foo']);
         
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(
             new AuthenticationResponse(false, ADResponseCodes::RESPONSE_MESSAGE[ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE], ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE)
@@ -236,7 +234,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = 'foo.local';
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['guid' => 'foo', 'username' => 'foo']);
 
         $ldap->switchDomain('foo.local')->shouldBeCalled();
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
@@ -247,7 +245,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = 'foo.local';
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['guid' => 'foo', 'username' => 'foo']);
 
         $ldap->switchDomain('foo.local')->willThrow(new InvalidArgumentException('invalid'));
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\BadCredentialsException')->duringCheckCredentials($credentials, $user);
@@ -305,7 +303,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
-        $user = new LdapUser(New LdapObject(['username' => 'foo']));
+        $user = (new LdapUser())->refresh(['guid' => 'foo', 'username' => 'foo']);
         $token = new UsernamePasswordToken($user, $credentials['password'], 'ldap-tools', $user->getRoles());
         $token->setAttribute('ldap_domain', '');
 

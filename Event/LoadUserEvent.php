@@ -11,6 +11,7 @@
 namespace LdapTools\Bundle\LdapToolsBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
+use LdapTools\Object\LdapObject;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -47,15 +48,22 @@ class LoadUserEvent extends Event
     protected $user;
 
     /**
+     * @var LdapObject|null
+     */
+    protected $ldapObject;
+
+    /**
      * @param $username
      * @param $domain
-     * @param UserInterface $user
+     * @param UserInterface|null $user
+     * @param LdapObject|null $ldapObject
      */
-    public function __construct($username, $domain, UserInterface $user = null)
+    public function __construct($username, $domain, UserInterface $user = null, LdapObject $ldapObject = null)
     {
         $this->username = $username;
         $this->domain = $domain;
         $this->user = $user;
+        $this->ldapObject = $ldapObject;
     }
 
     /**
@@ -82,5 +90,15 @@ class LoadUserEvent extends Event
     public function getUser()
     {
         return $this->user;
+    }
+
+    /**
+     * Get the LDAP object the user was created from. This is only available on an AFTER load event.
+     *
+     * @return LdapObject|null
+     */
+    public function getLdapObject()
+    {
+        return $this->ldapObject;
     }
 }

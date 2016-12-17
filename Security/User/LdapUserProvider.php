@@ -10,12 +10,15 @@
 
 namespace LdapTools\Bundle\LdapToolsBundle\Security\User;
 
+use LdapTools\BatchModify\BatchCollection;
+use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
 use LdapTools\Exception\EmptyResultException;
 use LdapTools\Exception\MultiResultException;
 use LdapTools\Object\LdapObject;
 use LdapTools\Object\LdapObjectCollection;
 use LdapTools\Object\LdapObjectType;
 use LdapTools\Utilities\LdapUtilities;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -30,19 +33,14 @@ use LdapTools\LdapManager;
 class LdapUserProvider implements UserProviderInterface
 {
     /**
-     * The base LdapUser class instantiated by this user provider.
-     */
-    const BASE_USER_CLASS = '\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser';
-
-    /**
      * @var LdapManager
      */
     protected $ldap;
 
     /**
-     * @var array The map for the LDAP attribute names.
+     * @var EventDispatcherInterface
      */
-    protected $attrMap = [];
+    protected $dispatcher;
 
     /**
      * @var array The role to LDAP group name map.
@@ -60,14 +58,27 @@ class LdapUserProvider implements UserProviderInterface
     ];
 
     /**
+     * @var array Default attributes selected for the Advanced User Interface.
+     */
+    protected $defaultAttributes = [
+        'username',
+        'guid',
+        'accountExpirationDate',
+        'enabled',
+        'groups',
+        'locked',
+        'passwordMustChange',
+    ];
+
+    /**
      * @var array Any additional LDAP attributes to select.
      */
-    protected $attributes = [];
+    protected $additionalAttributes = [];
 
     /**
      * @var string
      */
-    protected $userClass = self::BASE_USER_CLASS;
+    protected $userClass = LdapUser::class;
 
     /**
      * @var bool Whether or not to check group membership recursively when checking role membership.
@@ -106,14 +117,14 @@ class LdapUserProvider implements UserProviderInterface
 
     /**
      * @param LdapManager $ldap
-     * @param array $attrMap
+     * @param EventDispatcherInterface $dispatcher
      * @param array $roleMap
      * @param bool $checkGroupsRecursively
      */
-    public function __construct(LdapManager $ldap, array $attrMap, array $roleMap, $checkGroupsRecursively = true)
+    public function __construct(LdapManager $ldap, EventDispatcherInterface $dispatcher, array $roleMap, $checkGroupsRecursively = true)
     {
         $this->ldap = $ldap;
-        $this->attrMap = $attrMap;
+        $this->dispatcher = $dispatcher;
         $this->roleMap = $roleMap;
         $this->checkGroupsRecursively = $checkGroupsRecursively;
     }
@@ -138,11 +149,11 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function setUserClass($class)
     {
-        if (!($class === self::BASE_USER_CLASS || is_subclass_of($class, self::BASE_USER_CLASS))) {
+        if (!$this->supportsClass($class)) {
             throw new UnsupportedUserException(sprintf(
-                'The LDAP user provider class "%s" must be an instance of "%s".',
+                'The LDAP user provider class "%s" must implement "%s".',
                 $class,
-                self::BASE_USER_CLASS
+                LdapUserInterface::class
             ));
         }
 
@@ -156,7 +167,7 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function setAttributes(array $attributes)
     {
-        $this->attributes = $attributes;
+        $this->additionalAttributes = $attributes;
     }
 
     /**
@@ -218,7 +229,12 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        return $this->setRolesForUser($this->searchForUser($this->attrMap['username'], $username));
+        $this->dispatcher->dispatch(LoadUserEvent::BEFORE, new LoadUserEvent($username, $this->ldap->getDomainContext()));
+        $ldapUser = $this->getLdapUser('username', $username);
+        $user = $this->setRolesForUser($this->constructUserClass($ldapUser));
+        $this->dispatcher->dispatch(LoadUserEvent::AFTER, new LoadUserEvent($username, $this->ldap->getDomainContext(), $user, $ldapUser));
+
+        return $user;
     }
 
     /**
@@ -226,21 +242,21 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function refreshUser(UserInterface $user)
     {
-        if (!$user instanceof LdapUser) {
+        if (!$user instanceof LdapUserInterface) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
+        $roles = $user->getRoles();
+
         if ($this->refreshAttributes) {
-            $refreshedUser = $this->searchForUser($this->attrMap['guid'], $user->getLdapGuid());
-        } else {
-            $refreshedUser = $this->constructUserClass($user);
+            $user = $this->constructUserClass($this->getLdapUser('guid', $user->getLdapGuid()));
         }
         if ($this->refreshRoles) {
-            $this->setRolesForUser($refreshedUser);
+            $this->setRolesForUser($user);
         } else {
-            $refreshedUser->setRoles($user->getRoles());
+            $user->setRoles($roles);
         }
 
-        return $refreshedUser;
+        return $user;
     }
 
     /**
@@ -248,7 +264,7 @@ class LdapUserProvider implements UserProviderInterface
      */
     public function supportsClass($class)
     {
-        return ($class === self::BASE_USER_CLASS || is_subclass_of($class, self::BASE_USER_CLASS));
+        return is_subclass_of($class, LdapUserInterface::class);
     }
 
     /**
@@ -256,9 +272,9 @@ class LdapUserProvider implements UserProviderInterface
      *
      * @param string $attribute
      * @param string $value
-     * @return LdapUser
+     * @return LdapObject
      */
-    protected function searchForUser($attribute, $value)
+    protected function getLdapUser($attribute, $value)
     {
         try {
             $query = $this->ldap->buildLdapQuery()
@@ -268,14 +284,12 @@ class LdapUserProvider implements UserProviderInterface
             if (!is_null($this->searchBase)) {
                 $query->setBaseDn($this->searchBase);
             }
-            $ldapUser = $query->getLdapQuery()->getSingleResult();
+            return $query->getLdapQuery()->getSingleResult();
         } catch (EmptyResultException $e) {
             throw new UsernameNotFoundException(sprintf('Username "%s" was not found.', $value));
         } catch (MultiResultException $e) {
             throw new UsernameNotFoundException(sprintf('Multiple results for "%s" were found.', $value));
         }
-
-        return $this->constructUserClass($ldapUser);
     }
 
     /**
@@ -285,32 +299,33 @@ class LdapUserProvider implements UserProviderInterface
      */
     protected function getAttributesToSelect()
     {
-        $attributes = array_values($this->attrMap);
-        if (!empty($this->attributes)) {
-            $attributes = array_merge($attributes, $this->attributes);
-        }
-
-        return $attributes;
+        return array_values(array_unique(array_filter(array_merge(
+            $this->defaultAttributes,
+            $this->additionalAttributes
+        ))));
     }
 
     /**
      * Set the roles for the user based on group membership.
      *
-     * @param LdapUser $user
-     * @return LdapUser
+     * @param LdapUserInterface $user
+     * @return LdapUserInterface
      */
-    protected function setRolesForUser(LdapUser $user)
+    protected function setRolesForUser(LdapUserInterface $user)
     {
+        $roles = [];
+
         if ($this->defaultRole) {
-            $user->addRole($this->defaultRole);
+            $roles[] = $this->defaultRole;
         }
         $groups = $this->getGroupsForUser($user);
 
         foreach ($this->roleMap as $role => $roleGroups) {
             if ($this->hasGroupForRoles($roleGroups, $groups)) {
-                $user->addRole($role);
+                $roles[] = $role;
             }
         }
+        $user->setRoles($roles);
 
         return $user;
     }
@@ -367,10 +382,10 @@ class LdapUserProvider implements UserProviderInterface
     }
 
     /**
-     * @param LdapUser $user
+     * @param LdapUserInterface $user
      * @return LdapObjectCollection
      */
-    protected function getGroupsForUser(LdapUser $user)
+    protected function getGroupsForUser(LdapUserInterface $user)
     {
         $select = $this->roleAttrMap;
         unset($select['members']);
@@ -390,19 +405,32 @@ class LdapUserProvider implements UserProviderInterface
 
     /**
      * @param LdapObject $ldapObject
-     * @return LdapUser
+     * @return LdapUserInterface
      */
     protected function constructUserClass(LdapObject $ldapObject)
     {
         $errorMessage = 'Unable to instantiate user class "%s". Error was: %s';
 
         try {
-            $user = new $this->userClass($ldapObject, $this->attrMap);
+            /** @var LdapUserInterface $user */
+            $user = new $this->userClass();
+            $user->setUsername($ldapObject->get('username'));
+            $user->setLdapGuid($ldapObject->get('guid'));
         } catch (\Throwable $e) {
             throw new UnsupportedUserException(sprintf($errorMessage, $this->userClass, $e->getMessage()));
         // Unlikely to help much in PHP 5.6, but oh well...
         } catch (\Exception $e) {
             throw new UnsupportedUserException(sprintf($errorMessage, $this->userClass, $e->getMessage()));
+        }
+        // If the class also happens to extends the LdapTools LdapObject class, then set the attributes and type...
+        if ($user instanceof LdapObject) {
+            $user->setBatchCollection(new BatchCollection($ldapObject->get('dn')));
+            $user->refresh($ldapObject->toArray());
+            // This is to avoid the constructor
+            $refObject = new \ReflectionObject($user);
+            $refProperty = $refObject->getProperty('type');
+            $refProperty->setAccessible(true);
+            $refProperty->setValue($user, $this->ldapObjectType);
         }
 
         return $user;

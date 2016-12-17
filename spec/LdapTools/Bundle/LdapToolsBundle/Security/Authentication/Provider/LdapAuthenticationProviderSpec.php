@@ -200,13 +200,9 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
         $this->authenticate($token)->shouldReturnAnInstanceOf('\Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken');
     }
     
-    function it_should_call_a_login_success_and_a_load_user_before_event($token, $dispatcher, $user)
+    function it_should_call_a_login_success_event($token, $dispatcher)
     {
         $dispatcher->dispatch('ldap_tools_bundle.login.success', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent'))->shouldBeCalled();
-        $dispatcher->dispatch('ldap_tools_bundle.load_user.before', new LoadUserEvent('foo', 'foo.bar'))->shouldBeCalled();
-        $dispatcher->dispatch('ldap_tools_bundle.load_user.after', Argument::that(function($event) {
-            return $event->getUser() !== null;
-        }))->shouldBeCalled();
         $this->authenticate($token);
     }
 }

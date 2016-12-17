@@ -129,7 +129,6 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $doctrineEvents->addTag("doctrine.event_subscriber")->shouldBeCalled();
 
         // Expected parameter settings...
-        $container->setParameter('ldap_tools.security.default_attributes', $this->attrMap)->shouldBeCalled();
         $container->setParameter('ldap_tools.security.additional_attributes', [])->shouldBeCalled();
         $container->setParameter('ldap_tools.security.check_groups_recursively', true)->shouldBeCalled();
         $container->setParameter('ldap_tools.security.user', '\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser')->shouldBeCalled();
@@ -166,8 +165,6 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();
         $container->setParameter(Argument::any(), Argument::any())->shouldBeCalled();
 
-        $attr = $this->attrMap;
-        $attr['username'] = 'upn';
         $roles = ['ROLE_FOO' => ['foo']];
         $config = $this->config;
         $config['ldap_tools']['security']['roles'] = $roles;
@@ -175,7 +172,6 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config['ldap_tools']['security']['default_role'] = 'ROLE_FOOBAR';
         $config['ldap_tools']['security']['user'] = '\foo';
         $config['ldap_tools']['security']['additional_attributes'] = ['foo', 'bar'];
-        $config['ldap_tools']['security']['default_attributes']['username'] = 'upn';
         $config['ldap_tools']['security']['check_groups_recursively'] = false;
         $config['ldap_tools']['security']['search_base'] = 'ou=foo,dc=example,dc=local';
         $config['ldap_tools']['security']['role_ldap_type'] = 'foo';
@@ -187,7 +183,6 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setParameter('ldap_tools.security.default_role', 'ROLE_FOOBAR')->shouldBeCalled();
         $container->setParameter('ldap_tools.security.user', '\foo')->shouldBeCalled();
         $container->setParameter('ldap_tools.security.additional_attributes', ['foo','bar'])->shouldBeCalled();
-        $container->setParameter('ldap_tools.security.default_attributes', $attr)->shouldBeCalled();
         $container->setParameter('ldap_tools.security.check_groups_recursively', false)->shouldBeCalled();
         $userProvider->addMethodCall('setLdapObjectType', ['foo'])->shouldBeCalled();
         $userProvider->addMethodCall('setSearchBase', ['ou=foo,dc=example,dc=local'])->shouldBeCalled();
