@@ -93,6 +93,15 @@ class DefaultController extends Controller
 }
 ```
 
+### Generate/Retrieve Your LDAP SSL Certificate
+
+If you want a quick way to retrieve your server's LDAP SSL certificate you can run a simple command to output it:
+
+```php
+# Just supply your LDAP server name...
+php bin/console ldaptools:generate:sslcert --server "servername"
+```
+
 ### Documentation
 
 * [Configuration Reference](/Resources/doc/Configuration-Reference.md)
