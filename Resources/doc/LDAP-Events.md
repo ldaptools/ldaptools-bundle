@@ -7,6 +7,11 @@ of doing this is creating a subscriber class, then creating a tagged service usi
 three main methods to using events: Service Event Subscribers, Service Event Listeners, or defining them using the event
 dispatcher associated with the LdapManager.
  
+* [Service Event Subscribers](#the-service-event-subscriber-methods)
+* [Service Event Listeners](#the-service-event-listener-methods)
+* [Event Dispatcher Method](#the-ldapmanager-event-dispatcher-method)
+* [Injecting the LdapManager](#injecting-the-ldapmanager)
+
 For additional information of events please see the [LdapTools documentation](https://github.com/ldaptools/ldaptools/blob/master/docs/en/reference/Events.md).
 
 ## The Service Event Subscriber Method
@@ -158,3 +163,40 @@ class DefaultController extends Controller
     }
 }
 ```
+
+## Injecting the LdapManager
+
+Often timese you might want to inject the `ldap_tools.ldap_manager` service into one of your event definitions you have
+tagged as a service. However, by doing this you will create a circular reference error in the Dependency Injection Container.
+To get around this you can [mark the service as lazy](http://symfony.com/doc/current/service_container/lazy_services.html) in your event service definition:
+
+1. Install the needed dependency:
+
+```bash
+composer require ocramius/proxy-manager
+```
+
+2. Update your service definition:
+
+```yaml
+services:
+    app_bundle.event.ldap_listener:
+        class: AppBundle\Event\LdapEventListener
+        # This needs to be set to true...which will delay resolution/instantiation of the service...
+        lazy: true
+        # Inject the LdapManager in your constructor...
+        arguments: ['@ldap_tools.ldap_manager']
+        # Tag the listener so it gets loaded...
+        tags:
+            - { name: 'ldap_tools.event_listener', event: 'ldap.operation.execute.before', method: beforeOperation }
+```
+
+3. Clear and Warm-up the cache:
+
+```bash
+php bin/console cache:clear --env=dev
+php bin/console cache:warmup --env=dev
+```
+
+Now when you use the service definition with the LdapManager it should no longer result in a circular reference error in
+the DiC.
