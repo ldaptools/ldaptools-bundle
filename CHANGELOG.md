@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.6.0 (2017-01-29)
+------------------
+  * Add better Doctrine integration configuration (specify Doctrine entity manager names, or disable them).
+  * The LdapUser must implement the LdapUserInterface. Removes the dependency on the LdapObject class.
+  * Add a command (ldaptools:generate:sslcert) to assist in retrieving the LDAP SSL certificate.
+
 0.5.0 (2016-10-23)
 ------------------
   * By default user attributes/roles are no longer refreshed on each request. It is now configurable.
