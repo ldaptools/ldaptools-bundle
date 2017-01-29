@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "ldaptools/ldaptools": ">=0.20",
+        "ldaptools/ldaptools": ">=0.23",
         "symfony/framework-bundle": "~2.3|~3.0"
     },
     "require-dev": {
