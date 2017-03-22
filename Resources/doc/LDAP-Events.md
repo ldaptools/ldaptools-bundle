@@ -166,7 +166,7 @@ class DefaultController extends Controller
 
 ## Injecting the LdapManager
 
-Often timese you might want to inject the `ldap_tools.ldap_manager` service into one of your event definitions you have
+Often times you might want to inject the `ldap_tools.ldap_manager` service into one of your event definitions you have
 tagged as a service. However, by doing this you will create a circular reference error in the Dependency Injection Container.
 To get around this you can [mark the service as lazy](http://symfony.com/doc/current/service_container/lazy_services.html) in your event service definition:
 
