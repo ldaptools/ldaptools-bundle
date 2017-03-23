@@ -123,6 +123,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setDefinition('ldap_tools.doctrine.event_listener.ldap_object', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.security.ldap_guard_authenticator', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.ldif_parser', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
+        $container->setDefinition('ldap_tools.security.auth_success_handler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
+        $container->setDefinition('ldap_tools.security.auth_failure_handler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
 
         // Sets these by default when a domain is defined...
         $cacheWarmer->addTag("kernel.cache_warmer")->shouldBeCalled();
@@ -134,6 +136,18 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setParameter('ldap_tools.security.user', '\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser')->shouldBeCalled();
         $container->setParameter('ldap_tools.security.roles', [])->shouldBeCalled();
         $container->setParameter('ldap_tools.security.default_role', 'ROLE_USER')->shouldBeCalled();
+
+        $container->setParameter("ldap_tools.security.guard.auth_success", [
+            "default_target_path" => "/",
+            "always_use_target_path" => false,
+            "target_path_parameter" => "_target_path",
+            "use_referrer" => false
+        ])->shouldBeCalled();
+        $container->setParameter("ldap_tools.security.guard.auth_failure", [
+            "failure_path" => null,
+            "failure_forward" => false,
+            "failure_path_parameter" => "_failure_path"
+        ])->shouldBeCalled();
 
         $configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();
         $configDef->addMethodCall('setEventDispatcher', [new Reference('ldap_tools.event_dispatcher')])->shouldBeCalled();

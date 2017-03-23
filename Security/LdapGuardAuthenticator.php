@@ -10,6 +10,7 @@
 
 namespace LdapTools\Bundle\LdapToolsBundle\Security;
 
+use LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent;
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Exception\Exception;
 use LdapTools\Operation\AuthenticationOperation;
@@ -30,6 +31,8 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\LdapManager;
+use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 
 /**
  * LDAP Guard Authenticator.
@@ -74,19 +77,33 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     protected $startPath = 'login';
 
     /**
+     * @var AuthenticationSuccessHandlerInterface
+     */
+    protected $successHandler;
+
+    /**
+     * @var AuthenticationFailureHandlerInterface
+     */
+    protected $failureHandler;
+
+    /**
      * @param bool $hideUserNotFoundExceptions
      * @param LdapUserChecker $userChecker
      * @param LdapManager $ldap
      * @param RouterInterface $router
      * @param EventDispatcherInterface $dispatcher
+     * @param AuthenticationSuccessHandlerInterface $successHandler
+     * @param AuthenticationFailureHandlerInterface $failureHandler
      */
-    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, RouterInterface $router, EventDispatcherInterface $dispatcher)
+    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, RouterInterface $router, EventDispatcherInterface $dispatcher, AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler)
     {
         $this->hideUserNotFoundExceptions = $hideUserNotFoundExceptions;
         $this->userChecker = $userChecker;
         $this->ldap = $ldap;
         $this->router = $router;
         $this->dispatcher = $dispatcher;
+        $this->successHandler = $successHandler;
+        $this->failureHandler = $failureHandler;
     }
 
     /**
@@ -184,13 +201,16 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)
     {
-        if ($request->getSession()->has('_security.main.target_path')) {
-            $url = $request->getSession()->get('_security.main.target_path');
-        } else {
-            $url = '/';
-        }
+        $event = new AuthenticationHandlerEvent(
+            $this->successHandler->onAuthenticationSuccess($request, $token),
+            $request,
+            null,
+            $token,
+            $providerKey
+        );
+        $this->dispatcher->dispatch(AuthenticationHandlerEvent::SUCCESS, $event);
 
-        return new RedirectResponse($url);
+        return $event->getResponse();
     }
 
     /**
@@ -198,9 +218,14 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
-        $request->getSession()->set(Security::AUTHENTICATION_ERROR, $exception);
+        $event = new AuthenticationHandlerEvent(
+            $this->failureHandler->onAuthenticationFailure($request, $exception),
+            $request,
+            $exception
+        );
+        $this->dispatcher->dispatch(AuthenticationHandlerEvent::FAILURE, $event);
 
-        return new RedirectResponse($this->router->generate($this->startPath));
+        return $event->getResponse();
     }
 
     /**
@@ -238,6 +263,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     public function setStartPath($startPath)
     {
         $this->startPath = $startPath;
+        $this->configureAuthHandlers();
     }
 
     /**
@@ -281,5 +307,21 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         }
 
         throw $e;
+    }
+
+    /**
+     * Sets the start path based on the route name that was set and adds it to the default auth handlers.
+     */
+    protected function configureAuthHandlers()
+    {
+        $loginPath = $this->router->generate($this->startPath);
+
+        $options = $this->failureHandler->getOptions();
+        $options['login_path'] = $loginPath;
+        $this->failureHandler->setOptions($options);
+
+        $options = $this->successHandler->getOptions();
+        $options['login_path'] = $loginPath;
+        $this->successHandler->setOptions($options);
     }
 }

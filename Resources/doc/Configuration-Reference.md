@@ -3,6 +3,7 @@ Configuration Reference
 
 * [General](#general)
 * [Security](#security)
+* [Guard](#guard)
 * [Doctrine](#doctrine)
 * [LdapTools](#ldaptools)
 
@@ -142,10 +143,12 @@ Set this to true if you want user roles re-queried on a user refresh from the Ld
 
 **Default**: `false`
 
+## Guard
+
+These are Guard specific security settings under the `security.guard` section.
+
  ------------------
 #### start_path
-
-This is underneat the `guard` section:
 
 ```yaml
 ldap_tools:
@@ -157,6 +160,55 @@ ldap_tools:
 The default entry point/starting path as a route name.
 
 **Default**: `login`
+
+ ------------------
+#### default_target_path
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#redirecting-after-login
+
+**Default**: `/`
+
+ ------------------
+#### always_use_target_path
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#redirecting-after-login
+
+**Default**: `false`
+
+ ------------------
+#### target_path_parameter
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#redirecting-after-login
+
+**Default**: `_target_path`
+
+ ------------------
+#### use_referrer
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#redirecting-after-login
+
+**Default**: `false`
+
+ ------------------
+#### failure_path
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#full-default-configuration
+
+**Default**: `null`
+
+ ------------------
+#### failure_forward
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#full-default-configuration
+
+**Default**: `false`
+
+ ------------------
+#### failure_path_parameter
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#full-default-configuration
+
+**Default**: `_failure_path`
 
 ## Doctrine
 

@@ -77,6 +77,20 @@
             </call>
         </service>
 
+        <service id="ldap_tools.security.auth_success_handler" class="Symfony\Component\Security\Http\Authentication\DefaultAuthenticationSuccessHandler"
+                 parent="security.authentication.success_handler" public="false">
+            <call method="setOptions">
+                <argument>%ldap_tools.security.guard.auth_success%</argument>
+            </call>
+        </service>
+
+        <service id="ldap_tools.security.auth_failure_handler" class="Symfony\Component\Security\Http\Authentication\DefaultAuthenticationFailureHandler"
+                 parent="security.authentication.failure_handler" public="false" >
+            <call method="setOptions">
+                <argument>%ldap_tools.security.guard.auth_failure%</argument>
+            </call>
+        </service>
+
         <service id="ldap_tools.security.authentication.ldap_authentication_provider" class="%ldap_tools.security.authentication.ldap_authentication_provider.class%">
             <argument/> <!-- Provider Key -->
             <argument>%security.authentication.hide_user_not_found%</argument>
@@ -92,6 +106,8 @@
             <argument type="service" id="ldap_tools.ldap_manager" />
             <argument type="service" id="router" />
             <argument type="service" id="event_dispatcher" />
+            <argument type="service" id="ldap_tools.security.auth_success_handler" />
+            <argument type="service" id="ldap_tools.security.auth_failure_handler" />
         </service>
 
         <service id="ldap_tools.form.type.ldap_object" class="%ldap_tools.form.type.ldap_object.class%">

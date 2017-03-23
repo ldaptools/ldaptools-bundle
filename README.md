@@ -108,5 +108,6 @@ php bin/console ldaptools:generate:sslcert --server "servername"
 * [LDAP Authentication Provider](/Resources/doc/LDAP-Authentication-Provider.md)
 * [LDAP Authentication with the FOSUserBundle](/Resources/doc/LDAP-Authentication-With-The-FOSUserBundle.md)
 * [LDAP Object Form Type](/Resources/doc/LDAP-Object-Form-Type.md)
-* [LDAP Events](/Resources/doc/LDAP-Events.md)
+* [LdapTools LDAP Events](/Resources/doc/LDAP-Events.md)
+* [Bundle Events Reference](/Resources/doc/Bundle-Event-Reference.md)
 * [LDIF Parser URL Loaders](/Resources/doc/LDIF-Parser-URL-Loaders.md)

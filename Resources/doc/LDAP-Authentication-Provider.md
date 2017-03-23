@@ -6,6 +6,7 @@ LDAP Authentication Provider
   * [Mapping LDAP Groups to Roles](#mapping-ldap-groups-to-roles)
   * [Mapping LDAP Attributes](#mapping-ldap-attributes)
   * [Guard Specific Settings](#guard-specific-settings)
+  * [Guard Redirection](#guard-redirection)
   * [Show Detailed Login Errors](#hideshow-detailed-login-errors)
   * [LDAP Login Event](#successful-login-event)
   * [Load User Events](#load-user-events)
@@ -190,7 +191,24 @@ ldap_tools:
         guard:
             # This is the entry point/start path route name for the RedirectResponse of the Guard component
             start_path: 'login'
+            default_target_path: '/'
+            always_use_target_path: false
+            target_path_parameter: '_target_path'
+            use_referrer: false
+            failure_path: null
+            failure_forward: false
+            failure_path_parameter: '_failure_path'
 ```
+
+## Guard Redirection
+
+Due to the way the Guard is currently designed in Symfony, the redirection settings are handled through config options 
+here. While this does not allow for firewall specific redirection settings, you can get more fine-grained by hooking into
+events.
+
+On authentication success the Guard will trigger the event `ldap_tools_bundle.login.handler.success`. You can inspect the
+request, firewall provider name, token, etc and then use the `setResponse()` method of the event to control the redirect.
+You can do the same thing for failures in the `ldap_tools_bundle.login.handler.failure` event.
 
 ## Hide/Show Detailed Login Errors
 

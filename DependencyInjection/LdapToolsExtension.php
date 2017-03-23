@@ -117,6 +117,17 @@ class LdapToolsExtension extends Extension
         $container->setParameter('ldap_tools.security.user', $config['user']);
         $container->setParameter('ldap_tools.security.roles', $roles);
         $container->setParameter('ldap_tools.security.default_role', $config['default_role']);
+        $container->setParameter('ldap_tools.security.guard.auth_success',  [
+            'default_target_path' => $config['guard']['default_target_path'],
+            'always_use_target_path' => $config['guard']['always_use_target_path'],
+            'target_path_parameter' => $config['guard']['target_path_parameter'],
+            'use_referrer' => $config['guard']['use_referrer'],
+        ]);
+        $container->setParameter('ldap_tools.security.guard.auth_failure', [
+            'failure_path' => $config['guard']['failure_path'],
+            'failure_forward' => $config['guard']['failure_forward'],
+            'failure_path_parameter' => $config['guard']['failure_path_parameter'],
+        ]);
 
         $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
             'setLdapObjectType',
