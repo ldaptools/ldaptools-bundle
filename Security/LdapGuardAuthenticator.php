@@ -15,9 +15,7 @@ use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Exception\Exception;
 use LdapTools\Operation\AuthenticationOperation;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
@@ -28,11 +26,12 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
+use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\LdapManager;
-use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
-use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 
 /**
  * LDAP Guard Authenticator.
@@ -47,11 +46,6 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     protected $ldap;
 
     /**
-     * @var bool
-     */
-    protected $hideUserNotFoundExceptions;
-
-    /**
      * @var LdapUserChecker
      */
     protected $userChecker;
@@ -60,11 +54,6 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      * @var string
      */
     protected $domain;
-
-    /**
-     * @var RouterInterface
-     */
-    protected $router;
 
     /**
      * @var EventDispatcherInterface
@@ -87,23 +76,40 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     protected $failureHandler;
 
     /**
+     * @var AuthenticationEntryPointInterface
+     */
+    protected $entryPoint;
+
+    /**
+     * @var array
+     */
+    protected $options = [
+        'hide_user_not_found_exceptions' => true,
+        'username_parameter' => '_username',
+        'password_parameter' => '_password',
+        'domain_parameter' => '_ldap_domain',
+    ];
+
+    /**
      * @param bool $hideUserNotFoundExceptions
      * @param LdapUserChecker $userChecker
      * @param LdapManager $ldap
-     * @param RouterInterface $router
+     * @param AuthenticationEntryPointInterface $entryPoint
      * @param EventDispatcherInterface $dispatcher
      * @param AuthenticationSuccessHandlerInterface $successHandler
      * @param AuthenticationFailureHandlerInterface $failureHandler
+     * @param array $options
      */
-    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, RouterInterface $router, EventDispatcherInterface $dispatcher, AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler)
+    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, AuthenticationEntryPointInterface $entryPoint, EventDispatcherInterface $dispatcher, AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler, array $options)
     {
-        $this->hideUserNotFoundExceptions = $hideUserNotFoundExceptions;
         $this->userChecker = $userChecker;
         $this->ldap = $ldap;
-        $this->router = $router;
+        $this->entryPoint = $entryPoint;
         $this->dispatcher = $dispatcher;
         $this->successHandler = $successHandler;
         $this->failureHandler = $failureHandler;
+        $this->options['hide_user_not_found_exceptions'] = $hideUserNotFoundExceptions;
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -112,16 +118,10 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         $credentials = [
-            'username' => '',
-            'password' => '',
-            'ldap_domain' => '',
+            'username' => $this->getRequestParameter($this->options['username_parameter'], $request),
+            'password' => $this->getRequestParameter($this->options['password_parameter'], $request),
+            'ldap_domain' => $this->getRequestParameter($this->options['domain_parameter'], $request),
         ];
-        foreach (array_keys($credentials) as $key) {
-            $param = "_$key";
-            $value = $request->request->get($param) ?: $request->get($param);
-            $credentials[$key] = $value;
-        }
-
         if (empty($credentials['username'])) {
             return null;
         }
@@ -233,7 +233,14 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authException = null)
     {
-        return new RedirectResponse($this->router->generate($this->startPath));
+        $event = new AuthenticationHandlerEvent(
+            $this->entryPoint->start($request, $authException),
+            $request,
+            $authException
+        );
+        $this->dispatcher->dispatch(AuthenticationHandlerEvent::START, $event);
+
+        return $event->getResponse();
     }
 
     /**
@@ -256,14 +263,13 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     }
 
     /**
-     * Set the entry point/start path.
-     *
-     * @param string $startPath
+     * @param string $param
+     * @param Request $request
+     * @return string|null
      */
-    public function setStartPath($startPath)
+    protected function getRequestParameter($param, Request $request)
     {
-        $this->startPath = $startPath;
-        $this->configureAuthHandlers();
+        return $request->request->get($param) ?: $request->get($param);
     }
 
     /**
@@ -298,30 +304,14 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     protected function hideOrThrow(\Exception $e)
     {
-        if ($this->hideUserNotFoundExceptions) {
+        if ($this->options['hide_user_not_found_exceptions']) {
             throw new BadCredentialsException('Bad credentials.', 0, $e);
         }
         // Specifically show LdapTools related exceptions, ignore others.
-        if (!$this->hideUserNotFoundExceptions && $e instanceof Exception) {
+        if (!$this->options['hide_user_not_found_exceptions'] && $e instanceof Exception) {
             throw new CustomUserMessageAuthenticationException($e->getMessage(), [], $e->getCode());
         }
 
         throw $e;
-    }
-
-    /**
-     * Sets the start path based on the route name that was set and adds it to the default auth handlers.
-     */
-    protected function configureAuthHandlers()
-    {
-        $loginPath = $this->router->generate($this->startPath);
-
-        $options = $this->failureHandler->getOptions();
-        $options['login_path'] = $loginPath;
-        $this->failureHandler->setOptions($options);
-
-        $options = $this->successHandler->getOptions();
-        $options['login_path'] = $loginPath;
-        $this->successHandler->setOptions($options);
     }
 }

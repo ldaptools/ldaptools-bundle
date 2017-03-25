@@ -80,7 +80,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         ],
     ];
 
-    function let(ContainerBuilder $container, ParameterBagInterface $parameterBag, Definition $configDef, Definition $loggerDef, Definition  $cacheWarmer, Definition $doctrineEvents, Definition $userProvider, Definition $guardDef)
+    function let(ContainerBuilder $container, ParameterBagInterface $parameterBag, Definition $configDef, Definition $loggerDef, Definition  $cacheWarmer, Definition $doctrineEvents, Definition $userProvider, Definition $guardDef, Definition $entryDef)
     {
         $container->getParameter('kernel.debug')->willReturn(false);
 
@@ -94,6 +94,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->getDefinition('ldap_tools.log.logger_chain')->willReturn($loggerDef);
         $container->getDefinition("ldap_tools.security.user.ldap_user_provider")->willReturn($userProvider);
         $container->getDefinition("ldap_tools.security.ldap_guard_authenticator")->willReturn($guardDef);
+        $container->getDefinition('ldap_tools.security.authentication.form_entry_point')->willReturn($entryDef);
+        $entryDef->addArgument(Argument::any())->willReturn($entryDef);
 
         $container->getDefinition("ldap_tools.cache_warmer.ldap_tools_cache_warmer")->willReturn($cacheWarmer);
         $container->getDefinition("ldap_tools.doctrine.event_listener.ldap_object")->willReturn($doctrineEvents);
@@ -104,7 +106,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->shouldHaveType('LdapTools\Bundle\LdapToolsBundle\DependencyInjection\LdapToolsExtension');
     }
 
-    function it_should_load_the_configuration($container, $cacheWarmer, $doctrineEvents, $configDef, $guardDef, $userProvider)
+    function it_should_load_the_configuration($container, $cacheWarmer, $doctrineEvents, $configDef, $guardDef, $userProvider, $entryDef)
     {
         // These are all the definitions that should be processed from the services resource file...
         $container->setDefinition('ldap_tools.configuration', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
@@ -125,7 +127,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setDefinition('ldap_tools.ldif_parser', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.security.auth_success_handler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.security.auth_failure_handler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
-
+        $container->setDefinition("ldap_tools.security.authentication.form_entry_point", Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         // Sets these by default when a domain is defined...
         $cacheWarmer->addTag("kernel.cache_warmer")->shouldBeCalled();
         $doctrineEvents->addTag("doctrine.event_subscriber")->shouldBeCalled();
@@ -141,17 +143,27 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "default_target_path" => "/",
             "always_use_target_path" => false,
             "target_path_parameter" => "_target_path",
-            "use_referrer" => false
+            "use_referrer" => false,
+            "login_path" => '/login',
         ])->shouldBeCalled();
         $container->setParameter("ldap_tools.security.guard.auth_failure", [
             "failure_path" => null,
             "failure_forward" => false,
-            "failure_path_parameter" => "_failure_path"
+            "failure_path_parameter" => "_failure_path",
+            "login_path" => '/login',
+        ])->shouldBeCalled();
+        $container->setParameter("ldap_tools.security.guard.options", [
+            "username_parameter" => "_username",
+            "password_parameter" => "_password",
+            "domain_parameter" => "_ldap_domain"
         ])->shouldBeCalled();
 
         $configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();
         $configDef->addMethodCall('setEventDispatcher', [new Reference('ldap_tools.event_dispatcher')])->shouldBeCalled();
-        $guardDef->addMethodCall('setStartPath', ["login"])->shouldBeCalled();
+
+        $entryDef->addArgument(new Reference('security.http_utils'))->shouldBeCalled()->willReturn($entryDef);
+        $entryDef->addArgument('/login')->shouldBeCalled()->willReturn($entryDef);
+        $entryDef->addArgument(false)->shouldBeCalled()->willReturn($entryDef);
 
         $userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
         $userProvider->addMethodCall('setRoleLdapType', [LdapObjectType::GROUP])->shouldBeCalled();

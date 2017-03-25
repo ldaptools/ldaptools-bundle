@@ -148,18 +148,40 @@ Set this to true if you want user roles re-queried on a user refresh from the Ld
 These are Guard specific security settings under the `security.guard` section.
 
  ------------------
-#### start_path
+#### login_path
 
-```yaml
-ldap_tools:
-    security:
-        guard:
-            start_path: 'foo'
-```
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#login-path
 
-The default entry point/starting path as a route name.
+**Default**: `/login`
 
-**Default**: `login`
+ ------------------
+#### use_forward
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#use-forward
+
+**Default**: `false`
+
+ ------------------
+#### username_parameter
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#username-parameter
+
+**Default**: `_username`
+
+ ------------------
+#### password_parameter
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#password-parameter
+
+**Default**: `_password`
+
+ ------------------
+#### domain_parameter
+
+The domain name parameter for the LDAP domain to use during the login process. If this parameter is set during the login
+it will attempt to authenticate the user against the domain specified for the parameters values.
+
+**Default**: `_ldap_domain`
 
  ------------------
 #### default_target_path

@@ -33,6 +33,11 @@ class AuthenticationHandlerEvent extends Event
     const FAILURE = 'ldap_tools_bundle.guard.login.failure';
 
     /**
+     * The event name that happens when the entry point is called for the guard and returns a redirect/response.
+     */
+    const START = 'ldap_tools_bundle.guard.login.start';
+
+    /**
      * @var Response
      */
     protected $response;
