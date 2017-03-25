@@ -44,10 +44,6 @@ security:
             anonymous: ~
             # Use the default LDAP user provider defined above
             provider: ldap
-            form_login:
-                login_path: login
-                check_path: login_check
-                use_forward: true
             pattern: ^/
             logout: ~
             guard:
