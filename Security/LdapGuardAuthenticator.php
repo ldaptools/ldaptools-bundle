@@ -12,8 +12,11 @@ namespace LdapTools\Bundle\LdapToolsBundle\Security;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent;
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
+use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Exception\Exception;
+use LdapTools\Exception\LdapConnectionException;
 use LdapTools\Operation\AuthenticationOperation;
+use LdapTools\LdapManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -29,9 +32,6 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
-use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
-use LdapTools\Exception\LdapConnectionException;
-use LdapTools\LdapManager;
 
 /**
  * LDAP Guard Authenticator.
@@ -59,11 +59,6 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      * @var EventDispatcherInterface
      */
     protected $dispatcher;
-
-    /**
-     * @var string The entry point/start path route name.
-     */
-    protected $startPath = 'login';
 
     /**
      * @var AuthenticationSuccessHandlerInterface
