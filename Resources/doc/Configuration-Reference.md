@@ -162,6 +162,13 @@ Refer to: http://symfony.com/doc/current/reference/configuration/security.html#u
 **Default**: `false`
 
  ------------------
+#### post_only
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#post-only
+
+**Default**: `false`
+
+ ------------------
 #### username_parameter
 
 Refer to: http://symfony.com/doc/current/reference/configuration/security.html#username-parameter

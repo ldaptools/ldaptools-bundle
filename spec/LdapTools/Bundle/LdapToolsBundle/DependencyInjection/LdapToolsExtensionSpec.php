@@ -155,7 +155,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setParameter("ldap_tools.security.guard.options", [
             "username_parameter" => "_username",
             "password_parameter" => "_password",
-            "domain_parameter" => "_ldap_domain"
+            "domain_parameter" => "_ldap_domain",
+            "post_only" => false,
         ])->shouldBeCalled();
 
         $configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();

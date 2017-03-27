@@ -218,6 +218,7 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('password_parameter')->defaultValue('_password')->end()
                             ->scalarNode('domain_parameter')->defaultValue('_ldap_domain')->end()
                             ->booleanNode('use_forward')->defaultFalse()->end()
+                            ->booleanNode('post_only')->defaultFalse()->end()
                         ->end()
                     ->end()
                     ->arrayNode('additional_attributes')

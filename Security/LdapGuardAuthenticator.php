@@ -83,6 +83,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         'username_parameter' => '_username',
         'password_parameter' => '_password',
         'domain_parameter' => '_ldap_domain',
+        'post_only' => false,
     ];
 
     /**
@@ -264,7 +265,13 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     protected function getRequestParameter($param, Request $request)
     {
-        return $request->request->get($param) ?: $request->get($param);
+        if ($this->options['post_only']) {
+            $value = $request->request->get($param);
+        } else {
+            $value = $request->request->get($param) ?: $request->get($param);
+        }
+
+        return $value;
     }
 
     /**

@@ -37,6 +37,7 @@ class LdapToolsExtension extends Extension
         $this->setLdapConfigDefinition($container, $config);
         $this->setDoctrineConfiguration($container, $config);
         $this->setSecurityConfiguration($container, $config['security']);
+        $this->setGuardConfiguration($container, $config['security']['guard']);
     }
 
     /**
@@ -117,28 +118,6 @@ class LdapToolsExtension extends Extension
         $container->setParameter('ldap_tools.security.user', $config['user']);
         $container->setParameter('ldap_tools.security.roles', $roles);
         $container->setParameter('ldap_tools.security.default_role', $config['default_role']);
-        $container->setParameter('ldap_tools.security.guard.auth_success',  [
-            'default_target_path' => $config['guard']['default_target_path'],
-            'always_use_target_path' => $config['guard']['always_use_target_path'],
-            'target_path_parameter' => $config['guard']['target_path_parameter'],
-            'use_referrer' => $config['guard']['use_referrer'],
-            'login_path' => $config['guard']['login_path'],
-        ]);
-        $container->setParameter('ldap_tools.security.guard.auth_failure', [
-            'failure_path' => $config['guard']['failure_path'],
-            'failure_forward' => $config['guard']['failure_forward'],
-            'failure_path_parameter' => $config['guard']['failure_path_parameter'],
-            'login_path' => $config['guard']['login_path'],
-        ]);
-        $container->setParameter('ldap_tools.security.guard.options',  [
-            'username_parameter' => $config['guard']['username_parameter'],
-            'password_parameter' => $config['guard']['password_parameter'],
-            'domain_parameter' => $config['guard']['domain_parameter'],
-        ]);
-        $container->getDefinition('ldap_tools.security.authentication.form_entry_point')
-            ->addArgument(new Reference('security.http_utils'))
-            ->addArgument($config['guard']['login_path'])
-            ->addArgument($config['guard']['use_forward']);
 
         $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
             'setLdapObjectType',
@@ -168,5 +147,32 @@ class LdapToolsExtension extends Extension
             'setRefreshRoles',
             [$config['refresh_user_roles']]
         );
+    }
+
+    protected function setGuardConfiguration(ContainerBuilder $container, array $config)
+    {
+        $container->setParameter('ldap_tools.security.guard.auth_success',  [
+            'default_target_path' => $config['default_target_path'],
+            'always_use_target_path' => $config['always_use_target_path'],
+            'target_path_parameter' => $config['target_path_parameter'],
+            'use_referrer' => $config['use_referrer'],
+            'login_path' => $config['login_path'],
+        ]);
+        $container->setParameter('ldap_tools.security.guard.auth_failure', [
+            'failure_path' => $config['failure_path'],
+            'failure_forward' => $config['failure_forward'],
+            'failure_path_parameter' => $config['failure_path_parameter'],
+            'login_path' => $config['login_path'],
+        ]);
+        $container->setParameter('ldap_tools.security.guard.options',  [
+            'username_parameter' => $config['username_parameter'],
+            'password_parameter' => $config['password_parameter'],
+            'domain_parameter' => $config['domain_parameter'],
+            'post_only' => $config['post_only'],
+        ]);
+        $container->getDefinition('ldap_tools.security.authentication.form_entry_point')
+            ->addArgument(new Reference('security.http_utils'))
+            ->addArgument($config['login_path'])
+            ->addArgument($config['use_forward']);
     }
 }

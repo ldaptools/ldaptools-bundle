@@ -286,7 +286,15 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
     {
         $this->start($this->request, null)->shouldReturnAnInstanceOf('Symfony\Component\HttpFoundation\RedirectResponse');   
     }
-    
+
+    function it_should_obey_the_post_only_option($ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['post_only' => true]);
+        $this->request->query->add(['_username' => 'foo', '_password' => 'bar']);
+
+        $this->getCredentials($this->request)->shouldBeNull();
+    }
+
     function it_should_call_a_login_success_event($connection, $dispatcher)
     {
         $credentials = $this->credentials;
