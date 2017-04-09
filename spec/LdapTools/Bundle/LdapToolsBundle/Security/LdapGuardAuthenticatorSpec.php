@@ -295,6 +295,18 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->getCredentials($this->request)->shouldBeNull();
     }
 
+    function it_should_not_support_remember_me_by_defult()
+    {
+        $this->supportsRememberMe()->shouldBeEqualTo(false);
+    }
+
+    function it_should_support_remember_me_if_specified($ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['remember_me' => true]);
+
+        $this->supportsRememberMe()->shouldBeEqualTo(true);
+    }
+
     function it_should_call_a_login_success_event($connection, $dispatcher)
     {
         $credentials = $this->credentials;

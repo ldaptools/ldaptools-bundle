@@ -46,6 +46,11 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             'general' => [
                 'default_domain' => 'foo.bar',
             ],
+            'security' => [
+                'guard' => [
+                    'remember_me' => true
+                ]
+            ],
             'domains' => [
                 'example.local' => [
                     'domain_name' => 'example.local',
@@ -157,6 +162,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "password_parameter" => "_password",
             "domain_parameter" => "_ldap_domain",
             "post_only" => false,
+            'remember_me' => true,
         ])->shouldBeCalled();
 
         $configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();

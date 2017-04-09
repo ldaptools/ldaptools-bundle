@@ -194,6 +194,7 @@ ldap_tools:
             failure_path: null
             failure_forward: false
             failure_path_parameter: '_failure_path'
+            remember_me: false
 ```
 
 ## Guard Redirection

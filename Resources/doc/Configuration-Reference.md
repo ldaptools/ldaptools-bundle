@@ -169,6 +169,13 @@ Refer to: http://symfony.com/doc/current/reference/configuration/security.html#p
 **Default**: `false`
 
  ------------------
+#### remember_me
+
+Refer to: http://symfony.com/doc/current/reference/configuration/security.html#full-default-configuration
+
+**Default**: `false`
+
+ ------------------
 #### username_parameter
 
 Refer to: http://symfony.com/doc/current/reference/configuration/security.html#username-parameter

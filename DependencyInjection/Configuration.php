@@ -219,6 +219,7 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('domain_parameter')->defaultValue('_ldap_domain')->end()
                             ->booleanNode('use_forward')->defaultFalse()->end()
                             ->booleanNode('post_only')->defaultFalse()->end()
+                            ->booleanNode('remember_me')->defaultFalse()->end()
                         ->end()
                     ->end()
                     ->arrayNode('additional_attributes')

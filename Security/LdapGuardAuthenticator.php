@@ -84,6 +84,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         'password_parameter' => '_password',
         'domain_parameter' => '_ldap_domain',
         'post_only' => false,
+        'remember_me' => false,
     ];
 
     /**
@@ -244,7 +245,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function supportsRememberMe()
     {
-        return false;
+        return $this->options['remember_me'];
     }
 
     /**

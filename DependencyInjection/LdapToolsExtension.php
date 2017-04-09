@@ -169,6 +169,7 @@ class LdapToolsExtension extends Extension
             'password_parameter' => $config['password_parameter'],
             'domain_parameter' => $config['domain_parameter'],
             'post_only' => $config['post_only'],
+            'remember_me' => $config['remember_me']
         ]);
         $container->getDefinition('ldap_tools.security.authentication.form_entry_point')
             ->addArgument(new Reference('security.http_utils'))
