@@ -62,7 +62,7 @@ this currently is only valid for Active Directory domains (not OpenLDAP).
  ------------------
 #### user
 
-The user class that the LDAP user provider will instantiate. If you change this the class must extend the default one.
+The user class that the LDAP user provider will instantiate. If you change this the class must implement `LdapUserInterface`.
 
 **Default**: `LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser`
 
