@@ -193,6 +193,21 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $this->load($this->config, $container);
     }
 
+    function it_should_set_the_cache_type_to_none_when_the_kernel_is_in_debug_mode($container, $configDef)
+    {
+        $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();
+        $container->setParameter(Argument::any(), Argument::any())->shouldBeCalled();
+        $configDef->addMethodCall('setEventDispatcher', Argument::any())->shouldBeCalled();
+        $configDef->addMethodCall('setLogger', Argument::any())->shouldBeCalled();
+
+        $container->getParameter('kernel.debug')->willReturn(true);
+        $configDef->addMethodCall('loadFromArray', Argument::that(function($options) {
+            return $options[0]['general']['cache_type'] === 'none';
+        }))->shouldBeCalled();
+
+        $this->load($this->config, $container);
+    }
+
     function it_should_set_security_settings_specified_in_the_config($container, $userProvider)
     {
         $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();

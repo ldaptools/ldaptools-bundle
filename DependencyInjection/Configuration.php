@@ -104,7 +104,7 @@ class Configuration implements ConfigurationInterface
                         ->info('If more than one domain is defined, explicitly set which is the default context for the LdapManager (by domain_name)')->end()
                     ->scalarNode('schema_format')->end()
                     ->scalarNode('schema_folder')->end()
-                    ->scalarNode('cache_type')->defaultValue('doctrine')->end()
+                    ->scalarNode('cache_type')->defaultValue($this->debug ? 'none' : 'doctrine')->end()
                     ->arrayNode('cache_options')
                         ->addDefaultsIfNotSet()
                         ->children()
