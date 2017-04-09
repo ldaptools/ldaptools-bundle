@@ -12,6 +12,7 @@ namespace LdapTools\Bundle\LdapToolsBundle\Security\User;
 
 use LdapTools\BatchModify\BatchCollection;
 use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
+use LdapTools\Connection\LdapConnection;
 use LdapTools\Exception\EmptyResultException;
 use LdapTools\Exception\MultiResultException;
 use LdapTools\Object\LdapObject;
@@ -393,8 +394,10 @@ class LdapUserProvider implements UserProviderInterface
         $query = $this->ldap->buildLdapQuery()
             ->from($this->groupObjectType)
             ->select(array_values($select));
-        
-        if ($this->checkGroupsRecursively) {
+        /**
+         * @todo How to support recursive group checks for all LDAP types? Need a recursive method check of sorts...
+         */
+        if ($this->ldap->getConnection()->getConfig()->getLdapType() === LdapConnection::TYPE_AD && $this->checkGroupsRecursively) {
             $query->where($query->filter()->hasMemberRecursively($user->getLdapGuid(), $this->roleAttrMap['members']));
         } else {
             $query->where([$this->roleAttrMap['members'] => $user->getLdapGuid()]);

@@ -124,6 +124,16 @@ class LdapUserProviderSpec extends ObjectBehavior
         $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
     }
 
+    function it_should_not_search_recursively_when_the_LDAP_type_is_openldap($qb, $connection)
+    {
+        $connection->getConfig()->willReturn((new DomainConfiguration('foo.bar'))->setLdapType('openldap'));
+
+        $qb->where(Argument::type('LdapTools\Query\Operator\MatchingRule'))->shouldNotBeCalled();
+        $qb->where(Argument::withKey('members'))->shouldBeCalled();
+
+        $this->loadUserByUsername('foo');
+    }
+
     /**
      * No easy way to spec this at the moment unfortunately.
      */
