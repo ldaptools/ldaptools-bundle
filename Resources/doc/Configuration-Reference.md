@@ -44,13 +44,6 @@ The default LdapTools object type to query for when loading users from the LdapU
 **Default**: `user`
 
  ------------------
-#### ldap_object_type
-
-The default LdapTools object type to query for when loading users from the LdapUserProvider.
-
-**Default**: `user`
-
- ------------------
 #### default_role
 
 The default role to assign users loaded from the LdapUserProvider. If you set this to null the the user will be loaded

@@ -231,7 +231,7 @@ can also call the `getToken()` method to get the credentials used in the attempt
 
 #### 1. Create the event listener class.
  
-```
+```php
 namespace AppBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
@@ -271,7 +271,7 @@ the process.
  
 #### 1. Create the event listener class.
  
-```
+```php
 namespace AppBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
