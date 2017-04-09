@@ -266,11 +266,6 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->onAuthenticationFailure($request, new AuthenticationException('foo'))->shouldReturnAnInstanceOf('Symfony\Component\HttpFoundation\RedirectResponse');
     }
 
-    function it_should_return_false_for_supporting_remember_me()
-    {
-        $this->supportsRememberme()->shouldBeEqualTo(false);
-    }
-
     function it_should_create_an_authentication_token_with_the_domain_name(UserInterface $user, $connection)
     {
         $user->getUsername()->shouldBeCalled()->willReturn('foo');
