@@ -203,8 +203,8 @@ class ConfigCommand extends Command
      */
     protected function getConfigForDomain($server, $domain, $port, $useTls, $useSsl)
     {
-        $config = ($this->factory->getConfig($domain))
-            ->setLazyBind(true)
+        $config = $this->factory->getConfig($domain);
+        $config->setLazyBind(true)
             ->setUseTls($useTls)
             ->setUseSsl($useSsl);
         $config = $this->setServerOrDomain($config, $server, $domain);
