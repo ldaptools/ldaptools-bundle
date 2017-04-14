@@ -308,6 +308,27 @@ class ConfigCommand extends Command
      */
     protected function verifyCredentials(LdapConnection $connection, $username, $password)
     {
+        $username = $this->getConnectionUsername($username);
+        $password = $this->getConnectionPassword($username, $password);
+
+        /** @var AuthenticationResponse $response */
+        $response = $connection->execute(new AuthenticationOperation($username, $password));
+        if ($response->isAuthenticated()) {
+            $connection->getConfig()->setUsername($username)->setPassword($password);
+            $this->writeln(sprintf('<info>Successfully authenticated with user: %s</info>', $username));
+        } else {
+            $this->writeln(sprintf('<error>Unable to authenticate to LDAP: %s</error>', $response->getErrorMessage()));
+        }
+
+        return $response->isAuthenticated();
+    }
+
+    /**
+     * @param $username
+     * @return string
+     */
+    protected function getConnectionUsername($username)
+    {
         if (!$username && $this->interactive) {
             $defaultUser = $this->getDefaultUsername();
             $username = $this->promptForResponse('Enter the LDAP username' . ($defaultUser ? " [$defaultUser]" : '') . ': ', $defaultUser, false, function ($value) {
@@ -319,6 +340,16 @@ class ConfigCommand extends Command
             });
         }
 
+        return $username;
+    }
+
+    /**
+     * @param $username
+     * @param $password
+     * @return string
+     */
+    protected function getConnectionPassword($username, $password)
+    {
         $validatePassword = function ($value) {
             if (empty($value)) {
                 throw new \InvalidArgumentException('The password cannot be empty.');
@@ -326,6 +357,7 @@ class ConfigCommand extends Command
 
             return $value;
         };
+
         while (!$password && $this->interactive) {
             $original = $this->promptForResponse(sprintf('Enter the LDAP password for %s: ', $username), null, true, $validatePassword);
             $verified = $this->promptForResponse('Enter the password again to confirm: ', null, true, $validatePassword);
@@ -335,18 +367,8 @@ class ConfigCommand extends Command
                 $password = $verified;
             }
         }
-        /** @var AuthenticationResponse $response */
-        $response = $connection->execute(new AuthenticationOperation($username, $password));
 
-        if ($response->isAuthenticated()) {
-            $this->writeln(sprintf('<info>Successfully authenticated with user: %s</info>', $username));
-            $connection->getConfig()->setUsername($username)->setPassword($password);
-
-            return true;
-        }
-        $this->writeln(sprintf('<error>Unable to authenticate to LDAP: %s</error>', $response->getErrorMessage()));
-
-        return false;
+        return $password;
     }
 
     /**
