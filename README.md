@@ -40,7 +40,14 @@ class AppKernel extends Kernel
 
 ### Getting Started
 
-After installing the bundle, configure it with the LDAP domains you want to use:
+After installing the bundle you can run the following command to assist in generating/testing your LDAP config:
+
+```php
+# It will prompt for some basic quesetions (LDAP server, username/password to use, etc)
+php bin/console ldaptools:generate:config
+```
+
+Adding your domain(s) to the `config.yml` file is as easy as the following example: 
 
 ```yaml
 # app/config/config.yml
