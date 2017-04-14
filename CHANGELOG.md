@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.7.0 (2017-04-14)
+------------------  
+  * Add Guard redirection settings to the security config section of the bundle.
+  * Add Guard settings for: post_only, remember_me, username/password/domain parameters
+  * Add Guard events to set a response object on: start, auth success, auth failure
+  * Add a ldaptools:generate:config command to assist in generating your LDAP configuration.
+  * Only search groups recursively when the LDAP type is Active Directory.
+  * Do not use cache in debug/dev mode.
+
 0.6.0 (2017-01-29)
 ------------------
   * Add better Doctrine integration configuration (specify Doctrine entity manager names, or disable them).
