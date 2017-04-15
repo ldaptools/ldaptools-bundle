@@ -11,20 +11,19 @@
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Security\User;
 
 use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
+use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapRoleMapper;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
 use LdapTools\Exception\EmptyResultException;
 use LdapTools\Exception\MultiResultException;
 use LdapTools\LdapManager;
-use LdapTools\Object\LdapObjectCollection;
+use LdapTools\Object\LdapObject;
 use LdapTools\Object\LdapObjectType;
-use LdapTools\Query\Builder\ADFilterBuilder;
 use LdapTools\Query\LdapQuery;
 use LdapTools\Query\LdapQueryBuilder;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use LdapTools\Object\LdapObject;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\User\User;
 
@@ -41,46 +40,29 @@ class LdapUserProviderSpec extends ObjectBehavior
         'dn' => 'cn=foo,dc=foo,dc=bar',
     ];
 
-    function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query, LdapConnectionInterface $connection, EventDispatcherInterface $dispatcher)
+    function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query, LdapConnectionInterface $connection, EventDispatcherInterface $dispatcher, LdapRoleMapper $roleMapper)
     {
-        $groups = new LdapObjectCollection();
-        $groups->add(new LdapObject(['name' => 'Foo', 'dn' => 'cn=Foo,dc=example,dc=local']));
-        $groups->add(new LdapObject(['guid' => '291d8444-9d5b-4b0a-a6d7-853408f704d5', 'dn' => 'cn=Bar,dc=example,dc=local']));
-        $groups->add(new LdapObject(['sid' => 'S-1-5-18', 'dn' => 'cn=LocalSys,dc=example,dc=local']));
-        $groups->add(new LdapObject(['name' => 'Just a DN', 'dn' => 'cn=Stuff,dc=example,dc=local']));
-        $roleMap = [
-            'ROLE_AWESOME' => ['foo'],
-            'ROLE_ADMIN' => ['291d8444-9d5b-4b0a-a6d7-853408f704d5'],
-            'ROLE_DN' => ['cn=Stuff,dc=example,dc=local'],
-            'ROLE_SID' => ['S-1-5-18'],
-        ];
         $config = new DomainConfiguration('foo.bar');
-        $filter = new ADFilterBuilder();
 
         $ldapObject = new LdapObject($this->attr, 'user');
         $query->getSingleResult()->willReturn($ldapObject);
-        $query->getResult()->willReturn($groups);
         $query->getArrayResult()->willReturn([
             ['name' => 'foo'],
             ['name' => 'bar'],
         ]);
 
         $qb->from(LdapObjectType::USER)->willReturn($qb);
-        $qb->from('group')->willReturn($qb);
         $qb->select(["username", "guid", "accountExpirationDate", "enabled", "groups", "locked", "passwordMustChange"])->willReturn($qb);
-        $qb->select(["name", "sid", "guid"])->willReturn($qb);
         $qb->select('name')->willReturn($qb);
         $qb->where(['username' => 'foo'])->willReturn($qb);
         $qb->getLdapQuery()->willReturn($query);
-        $qb->filter()->willReturn($filter);
-        $qb->where($filter->hasMemberRecursively($this->attr['guid'], 'members'))->willReturn($qb);
         $ldap->buildLdapQuery()->willReturn($qb);
         $ldap->getDomainContext()->willReturn('foo.bar');
 
         $connection->getConfig()->willReturn($config);
         $ldap->getConnection()->willReturn($connection);
 
-        $this->beConstructedWith($ldap, $dispatcher, $roleMap, true);
+        $this->beConstructedWith($ldap, $dispatcher, $roleMapper);
     }
 
     function it_is_initializable()
@@ -94,44 +76,6 @@ class LdapUserProviderSpec extends ObjectBehavior
         $dispatcher->dispatch(LoadUserEvent::AFTER, Argument::type('\LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent'))->shouldBeCalledTimes(1);
 
         $this->loadUserByUsername('foo')->shouldBeAnInstanceOf('\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser');
-    }
-
-    function it_should_set_the_default_role()
-    {
-        $this->setDefaultRole('foobar');
-
-        $this->loadUserByUsername('foo')->getRoles()->shouldContain('FOOBAR');
-    }
-
-    function it_should_not_set_a_default_role_if_it_is_set_to_null($query)
-    {
-        $this->setDefaultRole(null);
-        $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'Test'])));
-
-        $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
-    }
-
-    function it_should_set_the_roles_properly_for_the_returned_groups($query)
-    {
-        $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME', 'ROLE_ADMIN', 'ROLE_DN', 'ROLE_SID']);
-
-        $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo'])));
-
-        $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo(['ROLE_AWESOME']);
-
-        $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'foo.bar'])));
-
-        $this->loadUserByUsername('foo')->getRoles()->shouldBeEqualTo([]);
-    }
-
-    function it_should_not_search_recursively_when_the_LDAP_type_is_openldap($qb, $connection)
-    {
-        $connection->getConfig()->willReturn((new DomainConfiguration('foo.bar'))->setLdapType('openldap'));
-
-        $qb->where(Argument::type('LdapTools\Query\Operator\MatchingRule'))->shouldNotBeCalled();
-        $qb->where(Argument::withKey('members'))->shouldBeCalled();
-
-        $this->loadUserByUsername('foo');
     }
 
     /**
@@ -205,39 +149,26 @@ class LdapUserProviderSpec extends ObjectBehavior
 
         $this->loadUserByUsername('foo');
     }
-    
-    function it_should_set_the_ldap_type_for_the_role_query($qb)
-    {
-        $this->setRoleLdapType('foo');
-        $qb->from('foo')->shouldBeCalled()->willReturn($qb);
 
-        $this->loadUserByUsername('foo');
-    }
-
-    function it_should_set_the_attribute_map_for_the_role_query($qb)
-    {
-        $this->setRoleAttributeMap(['members' => 'members', 'name' => 'cn', 'guid' => 'foo', 'sid' => 'bar']);
-        $qb->select(['cn', 'foo', 'bar'])->shouldBeCalled()->willReturn($qb);
-
-        $this->loadUserByUsername('foo');
-    }
-
-    function it_should_not_query_ldap_on_a_refresh_if_refresh_attributes_and_roles_is_false($connection, LdapUser $user)
+    function it_should_not_query_ldap_on_a_refresh_if_refresh_attributes_and_roles_is_false($connection, LdapUser $user, $roleMapper)
     {
         $user->getRoles()->willReturn([]);
         $user->setRoles([])->shouldBeCalled();
         $this->setRefreshAttributes(false);
         $this->setRefreshRoles(false);
+
         $connection->execute(Argument::any())->shouldNotBeCalled();
+        $roleMapper->setRoles(Argument::any())->shouldNotBeCalled();
 
         $this->refreshUser($user)->shouldBeEqualTo($user);
     }
 
-    function it_should_refresh_attributes_but_not_roles_if_specified($query, LdapUser $user, $qb)
+    function it_should_refresh_attributes_but_not_roles_if_specified($query, LdapUser $user, $qb, $roleMapper)
     {
         $this->setRefreshRoles(false);
+
         $query->getSingleResult()->shouldBeCalled();
-        $query->getResult()->shouldNotBeCalled();
+        $roleMapper->setRoles(Argument::any())->shouldNotBeCalled();
 
         $user->getLdapGuid()->shouldBeCalled()->willReturn($this->attr['guid']);
         $qb->where(['guid' => $this->attr['guid']])->shouldBeCalled()->willReturn($qb);
@@ -247,14 +178,13 @@ class LdapUserProviderSpec extends ObjectBehavior
         $this->refreshUser($user)->getRoles()->shouldBeEqualTo(['ROLE_USER']);
     }
 
-    function it_should_refresh_roles_but_not_attributes_if_specified($query, LdapUser $user)
+    function it_should_refresh_roles_but_not_attributes_if_specified($query, LdapUser $user, $roleMapper)
     {
         $this->setRefreshAttributes(false);
-        $query->getResult()->shouldBeCalled();
-        $user->getLdapGuid()->shouldBeCalled()->willReturn($this->attr['guid']);
         $user->getRoles()->willReturn(['ROLE_USER']);
+
         $query->getSingleResult()->shouldNotBeCalled();
-        $user->setRoles(["ROLE_AWESOME", "ROLE_ADMIN", "ROLE_DN", "ROLE_SID"])->shouldBeCalled();
+        $roleMapper->setRoles($user)->shouldBeCalled();
 
         $this->refreshUser($user);
     }

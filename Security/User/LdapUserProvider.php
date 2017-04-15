@@ -12,19 +12,16 @@ namespace LdapTools\Bundle\LdapToolsBundle\Security\User;
 
 use LdapTools\BatchModify\BatchCollection;
 use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
-use LdapTools\Connection\LdapConnection;
 use LdapTools\Exception\EmptyResultException;
 use LdapTools\Exception\MultiResultException;
+use LdapTools\LdapManager;
 use LdapTools\Object\LdapObject;
-use LdapTools\Object\LdapObjectCollection;
 use LdapTools\Object\LdapObjectType;
-use LdapTools\Utilities\LdapUtilities;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use LdapTools\LdapManager;
 
 /**
  * Loads a user from LDAP.
@@ -44,19 +41,9 @@ class LdapUserProvider implements UserProviderInterface
     protected $dispatcher;
 
     /**
-     * @var array The role to LDAP group name map.
+     * @var LdapRoleMapper
      */
-    protected $roleMap = [];
-
-    /**
-     * @var array Map names to their LDAP attribute names when querying for LDAP groups used for roles.
-     */
-    protected $roleAttrMap = [
-        'name' => 'name',
-        'sid' => 'sid',
-        'guid' => 'guid',
-        'members' => 'members',
-    ];
+    protected $roleMapper;
 
     /**
      * @var array Default attributes selected for the Advanced User Interface.
@@ -82,24 +69,9 @@ class LdapUserProvider implements UserProviderInterface
     protected $userClass = LdapUser::class;
 
     /**
-     * @var bool Whether or not to check group membership recursively when checking role membership.
-     */
-    protected $checkGroupsRecursively;
-
-    /**
-     * @var string|null The default role to be assigned to a user.
-     */
-    protected $defaultRole;
-
-    /**
      * @var string The object type to search LDAP for.
      */
     protected $ldapObjectType = LdapObjectType::USER;
-
-    /**
-     * @var string The group object type when searching group membership.
-     */
-    protected $groupObjectType = LdapObjectType::GROUP;
     
     /**
      * @var string The container/OU to search for the user under.
@@ -119,28 +91,13 @@ class LdapUserProvider implements UserProviderInterface
     /**
      * @param LdapManager $ldap
      * @param EventDispatcherInterface $dispatcher
-     * @param array $roleMap
-     * @param bool $checkGroupsRecursively
+     * @param LdapRoleMapper $roleMapper
      */
-    public function __construct(LdapManager $ldap, EventDispatcherInterface $dispatcher, array $roleMap, $checkGroupsRecursively = true)
+    public function __construct(LdapManager $ldap, EventDispatcherInterface $dispatcher, LdapRoleMapper $roleMapper)
     {
         $this->ldap = $ldap;
         $this->dispatcher = $dispatcher;
-        $this->roleMap = $roleMap;
-        $this->checkGroupsRecursively = $checkGroupsRecursively;
-    }
-
-    /**
-     * Set the default role to add to a LDAP user.
-     *
-     * @param string|null $role
-     */
-    public function setDefaultRole($role)
-    {
-        if (is_string($role)) {
-            $role = strtoupper($role);
-        }
-        $this->defaultRole = $role;
+        $this->roleMapper = $roleMapper;
     }
 
     /**
@@ -182,26 +139,6 @@ class LdapUserProvider implements UserProviderInterface
     }
 
     /**
-     * Set the LdapTools object type to search for group membership.
-     *
-     * @param string $type
-     */
-    public function setRoleLdapType($type)
-    {
-        $this->groupObjectType = $type;
-    }
-
-    /**
-     * Set the attribute name to LDAP name attributes used in querying LDAP groups for roles.
-     *
-     * @param array $map
-     */
-    public function setRoleAttributeMap(array $map)
-    {
-        $this->roleAttrMap = $map;
-    }
-
-    /**
      * @param string $searchBase
      */
     public function setSearchBase($searchBase)
@@ -232,7 +169,8 @@ class LdapUserProvider implements UserProviderInterface
     {
         $this->dispatcher->dispatch(LoadUserEvent::BEFORE, new LoadUserEvent($username, $this->ldap->getDomainContext()));
         $ldapUser = $this->getLdapUser('username', $username);
-        $user = $this->setRolesForUser($this->constructUserClass($ldapUser));
+        $user = $this->constructUserClass($ldapUser);
+        $this->roleMapper->setRoles($user);
         $this->dispatcher->dispatch(LoadUserEvent::AFTER, new LoadUserEvent($username, $this->ldap->getDomainContext(), $user, $ldapUser));
 
         return $user;
@@ -252,7 +190,7 @@ class LdapUserProvider implements UserProviderInterface
             $user = $this->constructUserClass($this->getLdapUser('guid', $user->getLdapGuid()));
         }
         if ($this->refreshRoles) {
-            $this->setRolesForUser($user);
+            $this->roleMapper->setRoles($user);
         } else {
             $user->setRoles($roles);
         }
@@ -304,106 +242,6 @@ class LdapUserProvider implements UserProviderInterface
             $this->defaultAttributes,
             $this->additionalAttributes
         ))));
-    }
-
-    /**
-     * Set the roles for the user based on group membership.
-     *
-     * @param LdapUserInterface $user
-     * @return LdapUserInterface
-     */
-    protected function setRolesForUser(LdapUserInterface $user)
-    {
-        $roles = [];
-
-        if ($this->defaultRole) {
-            $roles[] = $this->defaultRole;
-        }
-        $groups = $this->getGroupsForUser($user);
-
-        foreach ($this->roleMap as $role => $roleGroups) {
-            if ($this->hasGroupForRoles($roleGroups, $groups)) {
-                $roles[] = $role;
-            }
-        }
-        $user->setRoles($roles);
-
-        return $user;
-    }
-
-    /**
-     * Check all of the groups that are valid for a specific role against all of the LDAP groups that the user belongs
-     * to.
-     *
-     * @param array $roleGroups
-     * @param LdapObjectCollection $ldapGroups
-     * @return bool
-     */
-    protected function hasGroupForRoles(array $roleGroups, LdapObjectCollection $ldapGroups)
-    {
-        foreach ($roleGroups as $roleGroup) {
-            if (LdapUtilities::isValidLdapObjectDn($roleGroup)) {
-                $attribute = 'dn';
-            } elseif (preg_match(LdapUtilities::MATCH_GUID, $roleGroup)) {
-                $attribute = $this->roleAttrMap['guid'];
-            } elseif (preg_match(LdapUtilities::MATCH_SID, $roleGroup)) {
-                $attribute = $this->roleAttrMap['sid'];
-            } else {
-                $attribute = $this->roleAttrMap['name'];
-            }
-
-            if ($this->hasGroupWithAttributeValue($ldapGroups, $attribute, $roleGroup)) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-
-    /**
-     * Check each LDAP group to see if any of them have an attribute with a specific value.
-     *
-     * @param LdapObjectCollection $groups
-     * @param string $attribute
-     * @param string $value
-     * @return bool
-     */
-    protected function hasGroupWithAttributeValue(LdapObjectCollection $groups, $attribute, $value)
-    {
-        $value = strtolower($value);
-
-        /** @var LdapObject $group */
-        foreach ($groups as $group) {
-            if ($group->has($attribute) && strtolower($group->get($attribute)) == $value) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param LdapUserInterface $user
-     * @return LdapObjectCollection
-     */
-    protected function getGroupsForUser(LdapUserInterface $user)
-    {
-        $select = $this->roleAttrMap;
-        unset($select['members']);
-
-        $query = $this->ldap->buildLdapQuery()
-            ->from($this->groupObjectType)
-            ->select(array_values($select));
-        /**
-         * @todo How to support recursive group checks for all LDAP types? Need a recursive method check of sorts...
-         */
-        if ($this->ldap->getConnection()->getConfig()->getLdapType() === LdapConnection::TYPE_AD && $this->checkGroupsRecursively) {
-            $query->where($query->filter()->hasMemberRecursively($user->getLdapGuid(), $this->roleAttrMap['members']));
-        } else {
-            $query->where([$this->roleAttrMap['members'] => $user->getLdapGuid()]);
-        }
-        
-        return $query->getLdapQuery()->getResult();
     }
 
     /**

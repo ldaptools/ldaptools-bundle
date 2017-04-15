@@ -113,11 +113,15 @@ class LdapToolsExtension extends Extension
         $roles = isset($config['roles']) ? $config['roles'] : [];
         $additionalAttributes = isset($config['additional_attributes']) ? $config['additional_attributes'] : [];
 
+        $container->setParameter('ldap_tools.security.role_mapper.options', [
+            'check_groups_recursively' => $config['check_groups_recursively'],
+            'roles' => $roles,
+            'role_attributes' => $config['role_attributes'],
+            'role_ldap_type' => $config['role_ldap_type'],
+            'default_role' => $config['default_role'],
+        ]);
         $container->setParameter('ldap_tools.security.additional_attributes', $additionalAttributes);
-        $container->setParameter('ldap_tools.security.check_groups_recursively', $config['check_groups_recursively']);
         $container->setParameter('ldap_tools.security.user', $config['user']);
-        $container->setParameter('ldap_tools.security.roles', $roles);
-        $container->setParameter('ldap_tools.security.default_role', $config['default_role']);
 
         $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
             'setLdapObjectType',
@@ -131,14 +135,6 @@ class LdapToolsExtension extends Extension
                 [$config['search_base']]
             );
         }
-        $userProviderDef->addMethodCall(
-            'setRoleLdapType',
-            [$config['role_ldap_type']]
-        );
-        $userProviderDef->addMethodCall(
-            'setRoleAttributeMap',
-            [$config['role_attributes']]
-        );
         $userProviderDef->addMethodCall(
             'setRefreshAttributes',
             [$config['refresh_user_attributes']]

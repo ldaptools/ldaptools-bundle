@@ -133,16 +133,14 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setDefinition('ldap_tools.security.auth_success_handler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.security.auth_failure_handler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition("ldap_tools.security.authentication.form_entry_point", Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
+        $container->setDefinition("ldap_tools.security.user.ldap_role_mapper", Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         // Sets these by default when a domain is defined...
         $cacheWarmer->addTag("kernel.cache_warmer")->shouldBeCalled();
         $doctrineEvents->addTag("doctrine.event_subscriber")->shouldBeCalled();
 
         // Expected parameter settings...
         $container->setParameter('ldap_tools.security.additional_attributes', [])->shouldBeCalled();
-        $container->setParameter('ldap_tools.security.check_groups_recursively', true)->shouldBeCalled();
         $container->setParameter('ldap_tools.security.user', '\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser')->shouldBeCalled();
-        $container->setParameter('ldap_tools.security.roles', [])->shouldBeCalled();
-        $container->setParameter('ldap_tools.security.default_role', 'ROLE_USER')->shouldBeCalled();
 
         $container->setParameter("ldap_tools.security.guard.auth_success", [
             "default_target_path" => "/",
@@ -164,6 +162,18 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "post_only" => false,
             'remember_me' => true,
         ])->shouldBeCalled();
+        $container->setParameter("ldap_tools.security.role_mapper.options", [
+            "check_groups_recursively" => true,
+            "roles" => [],
+            "role_attributes" => [
+                "name" => "name",
+                "sid" => "sid",
+                "guid" => "guid",
+                "members" => "members"
+            ],
+            "role_ldap_type" => "group",
+            "default_role" => "ROLE_USER"
+        ])->shouldBeCalled();
 
         $configDef->addMethodCall('loadFromArray', Argument::any())->shouldBeCalled();
         $configDef->addMethodCall('setEventDispatcher', [new Reference('ldap_tools.event_dispatcher')])->shouldBeCalled();
@@ -173,10 +183,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $entryDef->addArgument(false)->shouldBeCalled()->willReturn($entryDef);
 
         $userProvider->addMethodCall('setLdapObjectType', [LdapObjectType::USER])->shouldBeCalled();
-        $userProvider->addMethodCall('setRoleLdapType', [LdapObjectType::GROUP])->shouldBeCalled();
         $userProvider->addMethodCall('setRefreshAttributes', [false])->shouldBeCalled();
         $userProvider->addMethodCall('setRefreshRoles', [false])->shouldBeCalled();
-        $userProvider->addMethodCall('setRoleAttributeMap', [["name" => "name", "sid" => "sid", "guid" => "guid", "members" => "members"]])->shouldBeCalled();
 
         $this->load($this->config, $container);
     }
@@ -213,9 +221,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();
         $container->setParameter(Argument::any(), Argument::any())->shouldBeCalled();
 
-        $roles = ['ROLE_FOO' => ['foo']];
         $config = $this->config;
-        $config['ldap_tools']['security']['roles'] = $roles;
+        $config['ldap_tools']['security']['roles'] = ['ROLE_FOO' => ['foo']];
         $config['ldap_tools']['security']['ldap_object_type'] = 'foo';
         $config['ldap_tools']['security']['default_role'] = 'ROLE_FOOBAR';
         $config['ldap_tools']['security']['user'] = '\foo';
@@ -227,18 +234,20 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config['ldap_tools']['security']['refresh_user_attributes'] = false;
         $config['ldap_tools']['security']['refresh_user_roles'] = false;
 
-        $container->setParameter('ldap_tools.security.roles', $roles)->shouldBeCalled();
-        $container->setParameter('ldap_tools.security.default_role', 'ROLE_FOOBAR')->shouldBeCalled();
+        $container->setParameter('ldap_tools.security.role_mapper.options', [
+            'check_groups_recursively' => false,
+            'roles' => ['ROLE_FOO' => ['foo']],
+            'role_attributes' => ['members' => 'foo'],
+            'role_ldap_type' => 'group',
+            'default_role' => 'ROLE_USER',
+        ]);
         $container->setParameter('ldap_tools.security.user', '\foo')->shouldBeCalled();
         $container->setParameter('ldap_tools.security.additional_attributes', ['foo','bar'])->shouldBeCalled();
-        $container->setParameter('ldap_tools.security.check_groups_recursively', false)->shouldBeCalled();
         $userProvider->addMethodCall('setLdapObjectType', ['foo'])->shouldBeCalled();
         $userProvider->addMethodCall('setSearchBase', ['ou=foo,dc=example,dc=local'])->shouldBeCalled();
-        $userProvider->addMethodCall('setRoleLdapType', ['foo'])->shouldBeCalled();
         $userProvider->addMethodCall('setRefreshAttributes', [false])->shouldBeCalled();
         $userProvider->addMethodCall('setRefreshRoles', [false])->shouldBeCalled();
-        $userProvider->addMethodCall('setRoleAttributeMap', [["members" => "foo", "name" => "name", "sid" => "sid", "guid" => "guid"]])->shouldBeCalled();
-        
+
         $this->load($config, $container);
     }
 
