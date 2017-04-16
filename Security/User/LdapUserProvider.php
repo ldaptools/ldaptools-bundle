@@ -16,7 +16,6 @@ use LdapTools\Exception\EmptyResultException;
 use LdapTools\Exception\MultiResultException;
 use LdapTools\LdapManager;
 use LdapTools\Object\LdapObject;
-use LdapTools\Object\LdapObjectType;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -59,107 +58,29 @@ class LdapUserProvider implements UserProviderInterface
     ];
 
     /**
-     * @var array Any additional LDAP attributes to select.
+     * @var array
      */
-    protected $additionalAttributes = [];
-
-    /**
-     * @var string
-     */
-    protected $userClass = LdapUser::class;
-
-    /**
-     * @var string The object type to search LDAP for.
-     */
-    protected $ldapObjectType = LdapObjectType::USER;
-    
-    /**
-     * @var string The container/OU to search for the user under.
-     */
-    protected $searchBase;
-
-    /**
-     * @var bool Whether or not user attributes should be re-queried on a refresh.
-     */
-    protected $refreshAttributes = true;
-
-    /**
-     * @var bool Whether or not user roles should be re-queried on a refresh.
-     */
-    protected $refreshRoles = true;
+    protected $options = [
+        'refresh_user_roles' => false,
+        'refresh_user_attributes' => false,
+        'search_base' => null,
+        'ldap_object_type' => 'user',
+        'user' => LdapUser::class,
+        'additional_attributes' => [],
+    ];
 
     /**
      * @param LdapManager $ldap
      * @param EventDispatcherInterface $dispatcher
      * @param LdapRoleMapper $roleMapper
+     * @param array $options
      */
-    public function __construct(LdapManager $ldap, EventDispatcherInterface $dispatcher, LdapRoleMapper $roleMapper)
+    public function __construct(LdapManager $ldap, EventDispatcherInterface $dispatcher, LdapRoleMapper $roleMapper, array $options)
     {
         $this->ldap = $ldap;
         $this->dispatcher = $dispatcher;
         $this->roleMapper = $roleMapper;
-    }
-
-    /**
-     * Set the user class to be instantiated and returned from the LDAP provider.
-     *
-     * @param string $class
-     */
-    public function setUserClass($class)
-    {
-        if (!$this->supportsClass($class)) {
-            throw new UnsupportedUserException(sprintf(
-                'The LDAP user provider class "%s" must implement "%s".',
-                $class,
-                LdapUserInterface::class
-            ));
-        }
-
-        $this->userClass = $class;
-    }
-
-    /**
-     * Set any additional attributes to be selected for the LDAP user.
-     *
-     * @param array $attributes
-     */
-    public function setAttributes(array $attributes)
-    {
-        $this->additionalAttributes = $attributes;
-    }
-
-    /**
-     * Set the LDAP object type that will be searched for.
-     *
-     * @param string $type
-     */
-    public function setLdapObjectType($type)
-    {
-        $this->ldapObjectType = $type;
-    }
-
-    /**
-     * @param string $searchBase
-     */
-    public function setSearchBase($searchBase)
-    {
-        $this->searchBase = $searchBase;
-    }
-
-    /**
-     * @param bool $refreshRoles
-     */
-    public function setRefreshRoles($refreshRoles)
-    {
-        $this->refreshRoles = $refreshRoles;
-    }
-
-    /**
-     * @param bool $refreshAttributes
-     */
-    public function setRefreshAttributes($refreshAttributes)
-    {
-        $this->refreshAttributes = $refreshAttributes;
+        $this->options = array_merge($this->options, $options);
     }
 
     /**
@@ -186,10 +107,10 @@ class LdapUserProvider implements UserProviderInterface
         }
         $roles = $user->getRoles();
 
-        if ($this->refreshAttributes) {
+        if ($this->options['refresh_user_attributes']) {
             $user = $this->constructUserClass($this->getLdapUser('guid', $user->getLdapGuid()));
         }
-        if ($this->refreshRoles) {
+        if ($this->options['refresh_user_roles']) {
             $this->roleMapper->setRoles($user);
         } else {
             $user->setRoles($roles);
@@ -218,10 +139,10 @@ class LdapUserProvider implements UserProviderInterface
         try {
             $query = $this->ldap->buildLdapQuery()
                 ->select($this->getAttributesToSelect())
-                ->from($this->ldapObjectType)
+                ->from($this->options['ldap_object_type'])
                 ->where([$attribute => $value]);
-            if (!is_null($this->searchBase)) {
-                $query->setBaseDn($this->searchBase);
+            if (!is_null($this->options['search_base'])) {
+                $query->setBaseDn($this->options['search_base']);
             }
             return $query->getLdapQuery()->getSingleResult();
         } catch (EmptyResultException $e) {
@@ -240,7 +161,7 @@ class LdapUserProvider implements UserProviderInterface
     {
         return array_values(array_unique(array_filter(array_merge(
             $this->defaultAttributes,
-            $this->additionalAttributes
+            $this->options['additional_attributes']
         ))));
     }
 
@@ -250,30 +171,47 @@ class LdapUserProvider implements UserProviderInterface
      */
     protected function constructUserClass(LdapObject $ldapObject)
     {
-        $errorMessage = 'Unable to instantiate user class "%s". Error was: %s';
+        if (!$this->supportsClass($this->options['user'])) {
+            throw new UnsupportedUserException(sprintf(
+                'The LDAP user provider class "%s" must implement "%s".',
+                $this->options['user'],
+                LdapUserInterface::class
+            ));
+        }
 
+        $errorMessage = 'Unable to instantiate user class "%s". Error was: %s';
         try {
             /** @var LdapUserInterface $user */
-            $user = new $this->userClass();
+            $user = new $this->options['user']();
             $user->setUsername($ldapObject->get('username'));
             $user->setLdapGuid($ldapObject->get('guid'));
         } catch (\Throwable $e) {
-            throw new UnsupportedUserException(sprintf($errorMessage, $this->userClass, $e->getMessage()));
+            throw new UnsupportedUserException(sprintf($errorMessage, $this->options['user'], $e->getMessage()));
         // Unlikely to help much in PHP 5.6, but oh well...
         } catch (\Exception $e) {
-            throw new UnsupportedUserException(sprintf($errorMessage, $this->userClass, $e->getMessage()));
+            throw new UnsupportedUserException(sprintf($errorMessage, $this->options['user'], $e->getMessage()));
         }
         // If the class also happens to extends the LdapTools LdapObject class, then set the attributes and type...
         if ($user instanceof LdapObject) {
-            $user->setBatchCollection(new BatchCollection($ldapObject->get('dn')));
-            $user->refresh($ldapObject->toArray());
-            // This is to avoid the constructor
-            $refObject = new \ReflectionObject($user);
-            $refProperty = $refObject->getProperty('type');
-            $refProperty->setAccessible(true);
-            $refProperty->setValue($user, $this->ldapObjectType);
+            $this->hydrateLdapObjectUser($ldapObject, $user);
         }
 
         return $user;
+    }
+
+    /**
+     * @param LdapObject $ldapObject
+     * @param $user
+     */
+    protected function hydrateLdapObjectUser(LdapObject $ldapObject, LdapObject $user)
+    {
+        $user->setBatchCollection(new BatchCollection($ldapObject->get('dn')));
+        $user->refresh($ldapObject->toArray());
+
+        // This is to avoid the constructor
+        $refObject = new \ReflectionObject($user);
+        $refProperty = $refObject->getProperty('type');
+        $refProperty->setAccessible(true);
+        $refProperty->setValue($user, $this->options['ldap_object_type']);
     }
 }

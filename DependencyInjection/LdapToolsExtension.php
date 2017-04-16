@@ -110,39 +110,21 @@ class LdapToolsExtension extends Extension
      */
     protected function setSecurityConfiguration(ContainerBuilder $container, array $config)
     {
-        $roles = isset($config['roles']) ? $config['roles'] : [];
-        $additionalAttributes = isset($config['additional_attributes']) ? $config['additional_attributes'] : [];
-
         $container->setParameter('ldap_tools.security.role_mapper.options', [
             'check_groups_recursively' => $config['check_groups_recursively'],
-            'roles' => $roles,
+            'roles' => isset($config['roles']) ? $config['roles'] : [],
             'role_attributes' => $config['role_attributes'],
             'role_ldap_type' => $config['role_ldap_type'],
             'default_role' => $config['default_role'],
         ]);
-        $container->setParameter('ldap_tools.security.additional_attributes', $additionalAttributes);
-        $container->setParameter('ldap_tools.security.user', $config['user']);
-
-        $container->getDefinition('ldap_tools.security.user.ldap_user_provider')->addMethodCall(
-            'setLdapObjectType',
-            [$config['ldap_object_type']]
-        );
-
-        $userProviderDef = $container->getDefinition('ldap_tools.security.user.ldap_user_provider');
-        if (isset($config['search_base'])) {
-            $userProviderDef->addMethodCall(
-                'setSearchBase',
-                [$config['search_base']]
-            );
-        }
-        $userProviderDef->addMethodCall(
-            'setRefreshAttributes',
-            [$config['refresh_user_attributes']]
-        );
-        $userProviderDef->addMethodCall(
-            'setRefreshRoles',
-            [$config['refresh_user_roles']]
-        );
+        $container->setParameter('ldap_tools.security.user.ldap_user_provider.options', [
+            'additional_attributes' => isset($config['additional_attributes']) ? $config['additional_attributes'] : [],
+            'user' => $config['user'],
+            'ldap_object_type' => $config['ldap_object_type'],
+            'search_base' => $config['search_base'],
+            'refresh_user_attributes' => $config['refresh_user_attributes'],
+            'refresh_user_roles' => $config['refresh_user_roles']
+        ]);
     }
 
     protected function setGuardConfiguration(ContainerBuilder $container, array $config)

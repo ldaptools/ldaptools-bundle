@@ -192,7 +192,7 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('security')
                     ->addDefaultsIfNotSet()
                     ->children()
-                    ->scalarNode('search_base')
+                    ->scalarNode('search_base')->defaultNull()
                         ->info('The default DN to start the user search from.')->end()
                     ->scalarNode('ldap_object_type')->defaultValue('user')
                         ->info('The LdapTools object type for the user provider to search for.')->end()
