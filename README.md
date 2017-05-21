@@ -43,7 +43,7 @@ class AppKernel extends Kernel
 After installing the bundle you can run the following command to assist in generating/testing your LDAP config:
 
 ```php
-# It will prompt for some basic quesetions (LDAP server, username/password to use, etc)
+# It will prompt for some basic questions (LDAP server, username/password to use, etc)
 php bin/console ldaptools:generate:config
 ```
 
