@@ -131,7 +131,7 @@ class Configuration implements ConfigurationInterface
                     ->scalarNode('domain_name')->isRequired()
                         ->info('The FQDN (ie. example.com)')->end()
                     ->scalarNode('username')
-                        ->info('The username/DN/SID/GUID to used to connect to LDAP.')->end()
+                        ->info('The username/DN/SID/GUID used to connect to LDAP.')->end()
                     ->scalarNode('password')
                         ->info('The password for the username used to connect to LDAP.')->end()
                     ->scalarNode('base_dn')
