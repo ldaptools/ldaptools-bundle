@@ -294,4 +294,16 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
         $this->load($config, $container);
     }
+
+    function it_should_not_require_the_username_and_password_for_the_domain_config($container, Definition $def)
+    {
+        $config = $this->config;
+        unset($config['ldap_tools']['domains']['foo.bar']['username']);
+        unset($config['ldap_tools']['domains']['foo.bar']['password']);
+
+        $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
+
+        $this->shouldNotThrow('\Exception')->duringLoad($config, $container);
+    }
 }
