@@ -86,6 +86,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
 
     function let(ContainerBuilder $container, ParameterBagInterface $parameterBag, Definition $configDef, Definition $loggerDef, Definition  $cacheWarmer, Definition $doctrineEvents, Definition $entryDef)
     {
+        $container->fileExists(Argument::any(), Argument::any())->willReturn(false);
         $container->getParameter('kernel.debug')->willReturn(false);
 
         // Do some needed setup so it loads resources correctly.
