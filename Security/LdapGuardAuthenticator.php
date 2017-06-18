@@ -13,6 +13,7 @@ namespace LdapTools\Bundle\LdapToolsBundle\Security;
 use LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent;
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
+use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider;
 use LdapTools\Exception\Exception;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\Operation\AuthenticationOperation;
@@ -136,6 +137,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
 
         try {
             $this->switchDomainIfNeeded($credentials);
+            $this->setLdapCredentialsIfNeeded($credentials, $userProvider);
             $user = $userProvider->loadUserByUsername($credentials['username']);
             $this->userChecker->checkPreAuth($user);
 
@@ -276,11 +278,35 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     }
 
     /**
+     * If no LDAP credentials are in the config then attempt to use the user supplied credentials from the login. But
+     * only if we are using the LdapUserProvider.
+     *
+     * @param array $credentials
+     * @param UserProviderInterface $userProvider
+     */
+    protected function setLdapCredentialsIfNeeded(array $credentials, UserProviderInterface $userProvider)
+    {
+        // Only care about this in the context of the LDAP user provider...
+        if (!$userProvider instanceof LdapUserProvider) {
+            return;
+        }
+
+        // Only if the username/password are not defined in the config....
+        $config = $this->ldap->getConnection()->getConfig();
+        if (!(empty($config->getUsername()) && (empty($config->getPassword() && $config->getPassword() !== '0')))) {
+            return;
+        }
+
+        $config->setUsername($credentials['username']);
+        $config->setPassword($credentials['password']);
+    }
+
+    /**
      * If the domain needs to a different context for the request, then switch it.
      *
      * @param array $credentials
      */
-    protected function switchDomainIfNeeded($credentials)
+    protected function switchDomainIfNeeded(array $credentials)
     {
         if (!empty($credentials['ldap_domain']) && $this->ldap->getDomainContext() !== $credentials['ldap_domain']) {
             $this->ldap->switchDomain($credentials['ldap_domain']);

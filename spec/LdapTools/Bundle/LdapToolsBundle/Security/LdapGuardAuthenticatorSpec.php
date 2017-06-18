@@ -13,6 +13,7 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Security;
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
+use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider;
 use LdapTools\Connection\ADResponseCodes;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
@@ -84,8 +85,9 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->request = new Request();
         $this->request->setSession(new Session());
 
+        $config = (new DomainConfiguration('foo.bar'))->setUsername('foo')->setPassword('bar');
         $entryPoint->start(Argument::any(), Argument::any())->willReturn(new RedirectResponse('/foo'));
-        $connection->getConfig()->willReturn(new DomainConfiguration('foo.bar'));
+        $connection->getConfig()->willReturn($config);
         $ldap->getConnection()->willReturn($connection);
         $ldap->getDomainContext()->willReturn('foo.bar');
         $authFailure->onAuthenticationFailure(Argument::any(), Argument::any())->willReturn(RedirectResponse::create('/'));
@@ -111,7 +113,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $this->getCredentials($this->request)->shouldBeNull();
     }
 
-    function it_should_get_a_user_object(UserProviderInterface $up, $ldap)
+    function it_should_get_a_user_object(LdapUserProvider $up, $ldap, DomainConfiguration $dc, $connection)
     {
         $credentials = $this->credentials;
         $credentials['ldap_domain'] = '';
@@ -119,6 +121,13 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
 
         $ldap->switchDomain(Argument::any())->shouldNotBeCalled();
         $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
+
+        $connection->getConfig()->willReturn($dc);
+        $dc->getPassword()->willReturn('foo');
+        $dc->getUsername()->willReturn('bar');
+
+        $dc->setUsername(Argument::any())->shouldNotBeCalled();
+        $dc->setPassword(Argument::any())->shouldNotBeCalled();
 
         $this->getUser($this->credentials, $up)->shouldBeEqualTo($user);
     }
@@ -335,5 +344,20 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $dispatcher->dispatch('ldap_tools_bundle.guard.login.start', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'))->shouldBeCalled();
 
         $this->start($request, new AuthenticationException('foo'));
+    }
+
+    function it_should_use_user_supplied_credentials_for_the_user_provider_if_the_domain_config_has_no_credentials_defined(LdapUserProvider $up, $ldap, $connection, DomainConfiguration $dc)
+    {
+        $user = (new LdapUser())->refresh(['username' => 'foo', 'guid' => 'bar']);
+        $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
+
+        $connection->getConfig()->willReturn($dc);
+        $dc->getPassword()->willReturn(null);
+        $dc->getUsername()->willReturn(null);
+
+        $dc->setUsername('foo')->shouldBeCalled();
+        $dc->setPassword('bar')->shouldBeCalled();
+
+        $this->getUser(['username' => 'foo', 'password' => 'bar', 'ldap_domain' => ''], $up)->shouldBeEqualTo($user);
     }
 }
