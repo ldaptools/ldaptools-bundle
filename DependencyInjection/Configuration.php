@@ -161,7 +161,7 @@ class Configuration implements ConfigurationInterface
                         ->prototype('scalar')->end()
                         ->end()
                     ->booleanNode('lazy_bind')
-                        ->info('If set to true, then the connection will not automatically connect and bind when first created.')->end()
+                        ->info('When set to true, then the connection will not automatically connect and bind when first created.')->defaultTrue()->end()
                     ->integerNode('idle_reconnect')
                         ->info('The elapsed time (in seconds) when an idle connection will attempt to reconnect to LDAP.')->end()
                     ->integerNode('connect_timeout')
