@@ -254,7 +254,7 @@ class LoginEventListener
     protected $em;
 
     /**
-     * @param SessionInterface $session
+     * @param EntityManagerInterface $em
      */
     public function __construct(EntityManagerInterface $em)
     {
