@@ -114,7 +114,7 @@ php bin/console ldaptools:generate:sslcert --server "servername"
 * [Configuration Reference](/Resources/doc/Configuration-Reference.md)
 * [LDAP Authentication Provider](/Resources/doc/LDAP-Authentication-Provider.md)
 * [LDAP Authentication with the FOSUserBundle](/Resources/doc/LDAP-Authentication-With-The-FOSUserBundle.md)
-* [Save LDAP Users to the Database After Login.md](/Resources/doc/Save-LDAP-Users-to-the-Database-After-Login.md)
+* [Save LDAP Users to the Database After Login](/Resources/doc/Save-LDAP-Users-to-the-Database-After-Login.md)
 * [LDAP Object Form Type](/Resources/doc/LDAP-Object-Form-Type.md)
 * [LdapTools LDAP Events](/Resources/doc/LDAP-Events.md)
 * [Bundle Events Reference](/Resources/doc/Bundle-Event-Reference.md)
