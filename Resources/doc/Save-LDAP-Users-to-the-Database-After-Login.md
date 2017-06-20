@@ -165,6 +165,16 @@ Set the encoder for the user to just simple plain text:
 
 Note that in this example the password is not stored on the database user.
 
+Now tell the LdapToolsBundle that it should use this class in its User Provider:
+
+```yaml
+# app/config/config.yml
+
+ldap_tools:
+    security:
+        user: AppBundle\Entity\AppUser
+```
+
 ## Create your User Provider Chain
  
 You must now chain your user providers (Both LDAP and the Doctrine entity user providers). This way it will try to load
