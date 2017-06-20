@@ -5,10 +5,10 @@ Often times you may want to save your LDAP user to a database after they login. 
 just the standard LdapUser of this bundle on login. To do this there are a few steps you have to follow. These steps are
 designed around a standard Doctrine entity:
 
-* [Create your Database User](#Create-your-Database-User) 
-* [Create your User Provider Chain for LDAP and Doctrine](#Create-your-User-Provider-Chain)
-* [Configure your Firewall](#Configure-your-Firewall-for-the-Guard)
-* [Create a LDAP Login Success Event](#Create-an-Event-to-Save-your-User-to-the-DB-on-Login)
+* [Create your Database User](#create-your-database-user) 
+* [Create your User Provider Chain for LDAP and Doctrine](#create-your-user-provider-chain)
+* [Configure your Firewall](#configure-your-firewall-for-the-guard)
+* [Create a LDAP Login Success Event](#create-an-event-to-save-your-user-to-the-db-on-login)
 
 ## Create your Database User
 
