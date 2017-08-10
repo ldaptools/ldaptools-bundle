@@ -72,10 +72,10 @@ class LdapToolsSubscriber implements EventSubscriberInterface
 
 2. Define the class as a service in your service config file and tag it:
 
-*In your bundles services config file*
-```yaml
+**
+```xml
 <?xml version="1.0" ?>
-    <!-- ... -->
+    <!-- In your bundles services config file -->
     <services>
         <!-- ... -->
         
@@ -85,7 +85,6 @@ class LdapToolsSubscriber implements EventSubscriberInterface
         
         <!-- ... -->
     </services>
-</container>
 ```
 
 ## The Service Event Listener Method
@@ -121,7 +120,7 @@ class AppUtility
 2. Define the class as a service in your service config file and tag it:
 
 *In your bundles services config file*
-```yaml
+```xml
 <?xml version="1.0" ?>
     <!-- ... -->
     <services>
@@ -133,7 +132,6 @@ class AppUtility
         
         <!-- ... -->
     </services>
-</container>
 ```
 
 The difference above in this method is that you directly define the event name and class method name directly on the
