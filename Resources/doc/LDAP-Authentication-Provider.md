@@ -3,6 +3,7 @@ LDAP Authentication Provider
 
   * [Symfony 2.8+](#symfony-28-use-the-guard-component)
   * [Symfony 2.3](#symfony-23-use-ldap_tools_form-custom-authentication-type)
+  * [LDAP Authentication Username](#ldap-authentication-username)
   * [Mapping LDAP Groups to Roles](#mapping-ldap-groups-to-roles)
   * [Mapping LDAP Attributes](#mapping-ldap-attributes)
   * [Guard Specific Settings](#guard-specific-settings)
@@ -100,6 +101,26 @@ security:
 
 The LDAP provider is used for the purpose of these examples, but other user providers can be substituted. By default the
 LDAP user provider provides an extended instance of `\LdapTools\Object\LdapObject`.
+
+## LDAP Authentication Username
+
+By default when you configure the authentication to use LDAP it will use the provided username from `getUsername()` of
+the user from the UserProvider to bind to LDAP. In the case of Active Directory this will work fine with no modification
+needed. However, OpenLDAP and other LDAPs may require a full DN for login.
+
+To get around the above you can define a `bind_format` option in LdapTools to form a full DN for the bind. An example of
+this would be:
+
+```yaml
+ldap_tools:
+    domains:
+        example:
+            # The simple name of the user will replace the %%username%%
+            # Double %% needed to escape the normal parameter resolution in Symfony
+            bind_format: "CN=%%username%%,CN=Users,DC=example,DC=local"
+```
+
+Now when you authenticate a user a full DN will be formed using the above string.
 
 ## Mapping LDAP Groups to Roles
 
