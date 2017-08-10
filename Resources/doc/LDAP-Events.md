@@ -7,8 +7,8 @@ of doing this is creating a subscriber class, then creating a tagged service usi
 three main methods to using events: Service Event Subscribers, Service Event Listeners, or defining them using the event
 dispatcher associated with the LdapManager.
  
-* [Service Event Subscribers](#the-service-event-subscriber-methods)
-* [Service Event Listeners](#the-service-event-listener-methods)
+* [Service Event Subscribers](#the-service-event-subscriber-method)
+* [Service Event Listeners](#the-service-event-listener-method)
 * [Event Dispatcher Method](#the-ldapmanager-event-dispatcher-method)
 * [Injecting the LdapManager](#injecting-the-ldapmanager)
 
