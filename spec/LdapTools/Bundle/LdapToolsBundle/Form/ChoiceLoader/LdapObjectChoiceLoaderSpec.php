@@ -23,7 +23,7 @@ use PhpSpec\ObjectBehavior;
  */
 class LdapObjectChoiceLoaderSpec extends ObjectBehavior
 {
-    public function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query, LdapObjectCollection $result)
+    public function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query)
     {
         $ldap->buildLdapQuery()->willReturn($qb);
         $qb->getLdapQuery()->willReturn($query);
