@@ -13,7 +13,7 @@ use LdapTools\Bundle\LdapToolsBundle\Form\Type\LdapObjectType;
 # ...
 
 $form = $this->createFormBuilder()
-    // For Symfony 2.3 - 2.7, replace LdapObjectType::class with "ldap_object".
+    // For Symfony 2.7, replace LdapObjectType::class with "ldap_object".
     ->add('ldap', LdapObjectType::class, [
         // The ldap_type can be any valid LdapTools type. Such as: user, computer, contact, etc.
         'ldap_type' => 'group',

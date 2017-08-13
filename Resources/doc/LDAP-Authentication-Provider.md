@@ -2,7 +2,7 @@ LDAP Authentication Provider
 ================
 
   * [Symfony 2.8+](#symfony-28-use-the-guard-component)
-  * [Symfony 2.3](#symfony-23-use-ldap_tools_form-custom-authentication-type)
+  * [Symfony 2.7](#symfony-23-use-ldap_tools_form-custom-authentication-type)
   * [LDAP Authentication Username](#ldap-authentication-username)
   * [Mapping LDAP Groups to Roles](#mapping-ldap-groups-to-roles)
   * [Mapping LDAP Attributes](#mapping-ldap-attributes)
@@ -60,7 +60,7 @@ security:
         - { path: ^/, roles: ROLE_USER }
 ```
 
-### Symfony 2.3 (Use ldap_tools_form custom authentication type)
+### Symfony 2.7 (Use ldap_tools_form custom authentication type)
 
 ```yaml
 # app/config/security.yml
