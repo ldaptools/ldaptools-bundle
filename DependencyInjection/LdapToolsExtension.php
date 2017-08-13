@@ -37,7 +37,7 @@ class LdapToolsExtension extends Extension
         $this->setLdapConfigDefinition($container, $config);
         $this->setDoctrineConfiguration($container, $config);
         $this->setSecurityConfiguration($container, $config['security']);
-        $this->setGuardConfiguration($container, $config['security']['guard']);
+        $this->setGuardConfiguration($container, $config['security']['guard'], $config['security']);
     }
 
     /**
@@ -125,9 +125,12 @@ class LdapToolsExtension extends Extension
             'refresh_user_attributes' => $config['refresh_user_attributes'],
             'refresh_user_roles' => $config['refresh_user_roles']
         ]);
+        $container->setParameter('ldap_tools.security.authentication.ldap_authentication_provider.options', [
+            'login_query_attribute' => $config['login_query_attribute'],
+        ]);
     }
 
-    protected function setGuardConfiguration(ContainerBuilder $container, array $config)
+    protected function setGuardConfiguration(ContainerBuilder $container, array $config, array $security)
     {
         $container->setParameter('ldap_tools.security.guard.auth_success',  [
             'default_target_path' => $config['default_target_path'],
@@ -147,7 +150,8 @@ class LdapToolsExtension extends Extension
             'password_parameter' => $config['password_parameter'],
             'domain_parameter' => $config['domain_parameter'],
             'post_only' => $config['post_only'],
-            'remember_me' => $config['remember_me']
+            'remember_me' => $config['remember_me'],
+            'login_query_attribute' => $security['login_query_attribute'],
         ]);
         $container->getDefinition('ldap_tools.security.authentication.form_entry_point')
             ->addArgument(new Reference('security.http_utils'))

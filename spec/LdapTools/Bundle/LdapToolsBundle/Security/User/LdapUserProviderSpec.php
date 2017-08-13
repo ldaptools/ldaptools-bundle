@@ -190,4 +190,9 @@ class LdapUserProviderSpec extends ObjectBehavior
 
         $this->refreshUser($user);
     }
+
+    function it_should_get_a_ldap_user_object_from_a_specific_attribute_and_value()
+    {
+        $this->getLdapUser('username', 'foo')->shouldBeAnInstanceOf('LdapTools\Object\LdapObject');
+    }
 }

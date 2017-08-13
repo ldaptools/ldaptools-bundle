@@ -46,6 +46,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
                 'default_domain' => 'foo.bar',
             ],
             'security' => [
+                'login_query_attribute' => null,
                 'guard' => [
                     'remember_me' => true
                 ]
@@ -157,6 +158,10 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "domain_parameter" => "_ldap_domain",
             "post_only" => false,
             'remember_me' => true,
+            'login_query_attribute' => null,
+        ])->shouldBeCalled();
+        $container->setParameter("ldap_tools.security.authentication.ldap_authentication_provider.options", [
+            'login_query_attribute' => null,
         ])->shouldBeCalled();
         $container->setParameter("ldap_tools.security.role_mapper.options", [
             "check_groups_recursively" => true,
@@ -308,5 +313,27 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
 
         $this->shouldNotThrow('\Exception')->duringLoad($config, $container);
+    }
+
+    function it_should_allow_setting_a_specific_ldap_attribute_to_query_for_a_bind_dn($container, Definition $def)
+    {
+        $config = $this->config;
+        $config['ldap_tools']['security']['login_query_attribute'] = 'username';
+        $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
+
+        $container->setParameter("ldap_tools.security.guard.options", [
+            "username_parameter" => "_username",
+            "password_parameter" => "_password",
+            "domain_parameter" => "_ldap_domain",
+            "post_only" => false,
+            'remember_me' => true,
+            'login_query_attribute' => 'username',
+        ])->shouldBeCalled();
+        $container->setParameter("ldap_tools.security.authentication.ldap_authentication_provider.options", [
+            'login_query_attribute' => 'username',
+        ])->shouldBeCalled();
+
+        $this->load($config, $container);
     }
 }

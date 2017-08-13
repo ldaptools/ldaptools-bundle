@@ -30,6 +30,18 @@ Whether or not profiling data should be captured.
 There are several options to control security. All of these are under the `security` section.
 
  ------------------
+#### login_query_attribute
+
+When authenticating a username in the authentication providers, this attribute can be specified to query the username
+value against to retrieve a DN of the username. The DN is needed for authentication in OpenLDAP, where as in AD a username
+will typically work fine.
+
+If you are using the LdapUserProvider provided by this bundle you should not have to set this. But if you're using a
+different user provider, or your own defined LDAP User class, then you might have to.
+
+**Default**: `null`
+
+ ------------------
 #### search_base
 
 The default DN to start the user search from when loading users from the LdapUserProvider.

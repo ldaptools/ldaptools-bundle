@@ -10,14 +10,15 @@
 
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Security\Authentication\Provider;
 
-use LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
+use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider;
 use LdapTools\Connection\ADResponseCodes;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\LdapManager;
+use LdapTools\Object\LdapObject;
 use LdapTools\Operation\AuthenticationOperation;
 use LdapTools\Operation\AuthenticationResponse;
 use PhpSpec\ObjectBehavior;
@@ -35,9 +36,9 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
      */
     protected $operation;
 
-    function let(UserProviderInterface $userProvider, LdapUserChecker $userChecker, LdapManager $ldap, TokenInterface $token, LdapUser $user, LdapConnectionInterface $connection, AuthenticationResponse $response, \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher)
+    function let(UserProviderInterface $userProvider, LdapManager $ldap, TokenInterface $token, LdapUser $user, LdapConnectionInterface $connection, AuthenticationResponse $response, \Symfony\Component\EventDispatcher\EventDispatcherInterface $dispatcher, LdapUserProvider $ldapUserProvider)
     {
-        $this->operation = (new AuthenticationOperation())->setUsername('foo')->setPassword('bar');
+        $this->operation = new AuthenticationOperation('cn=foo,dc=foo,dc=bar', 'bar');
 
         $token->getUsername()->willReturn('foo');
         $token->getCredentials()->willReturn('bar');
@@ -61,6 +62,8 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
         $user->isEnabled()->willReturn(true);
         $user->isAccountNonExpired()->willReturn(true);
         $user->isCredentialsNonExpired()->willReturn(true);
+        $user->has('dn')->willReturn(true);
+        $user->get('dn')->willReturn('cn=foo,dc=foo,dc=bar');
 
         $this->beConstructedWith(
             'restricted',
@@ -68,7 +71,9 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
             $userProvider,
             new LdapUserChecker(),
             $ldap,
-            $dispatcher
+            $dispatcher,
+            $ldapUserProvider,
+            []
         );
     }
 
@@ -105,7 +110,7 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
         $this->shouldThrow($e)->duringAuthenticate($token);
     }
 
-    function it_should_throw_a_bad_credentials_exception_on_an_invalid_password_with_the_exact_message_if_specified($userProvider, $ldap, $dispatcher, $response, $token)
+    function it_should_throw_a_bad_credentials_exception_on_an_invalid_password_with_the_exact_message_if_specified($userProvider, $ldap, $dispatcher, $response, $token, $ldapUserProvider)
     {
         $this->beConstructedWith(
             'restricted',
@@ -113,7 +118,9 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
             $userProvider,
             new LdapUserChecker(),
             $ldap,
-            $dispatcher
+            $dispatcher,
+            $ldapUserProvider,
+            []
         );
         $response->isAuthenticated()->willReturn(false);
         $response->getErrorCode()->willReturn(9000);
@@ -147,7 +154,7 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\BadCredentialsException')->duringAuthenticate($token);
     }
 
-    function it_should_throw_a_username_not_found_exception_when_specified_if_a_user_is_not_found($userProvider, $ldap, $dispatcher, $token)
+    function it_should_throw_a_username_not_found_exception_when_specified_if_a_user_is_not_found($userProvider, $ldap, $dispatcher, $token, $ldapUserProvider)
     {
         $this->beConstructedWith(
             'restricted',
@@ -155,7 +162,9 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
             $userProvider,
             new LdapUserChecker(),
             $ldap,
-            $dispatcher
+            $dispatcher,
+            $ldapUserProvider,
+            []
         );
         $userProvider->loadUserByUsername('foo')->willThrow(new UsernameNotFoundException());
 
@@ -203,6 +212,60 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
     function it_should_call_a_login_success_event($token, $dispatcher)
     {
         $dispatcher->dispatch('ldap_tools_bundle.login.success', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent'))->shouldBeCalled();
+        $this->authenticate($token);
+    }
+
+    function it_should_use_user_supplied_credentials_for_the_user_provider_if_the_domain_config_has_no_credentials_defined($token, $connection, DomainConfiguration $dc, LdapUserProvider $up, $ldapUserProvider, $ldap, $dispatcher, $user)
+    {
+        $up->loadUserByUsername('foo')->shouldBeCalled()->willReturn($user);
+
+        $connection->getConfig()->willReturn($dc);
+        $dc->getPassword()->willReturn(null);
+        $dc->getUsername()->willReturn(null);
+
+        $dc->setUsername('foo')->shouldBeCalled();
+        $dc->setPassword('bar')->shouldBeCalled();
+
+        $this->beConstructedWith(
+            'restricted',
+            true,
+            $up,
+            new LdapUserChecker(),
+            $ldap,
+            $dispatcher,
+            $ldapUserProvider,
+            []
+        );
+
+        $this->authenticate($token);
+    }
+
+    function it_should_use_the_username_for_the_bind_if_the_user_has_no_dn_and_no_attribute_is_specified($token, $user, $connection)
+    {
+        $user->has('dn')->willReturn(false);
+        $connection
+            ->execute(new AuthenticationOperation('foo', 'bar'))
+            ->shouldBeCalled()
+            ->willReturn(new AuthenticationResponse(true));
+
+        $this->authenticate($token);
+    }
+
+    function it_should_query_LDAP_for_the_username_on_login_for_the_bind_DN_if_specified($userProvider, $ldap, $dispatcher, $ldapUserProvider, $token, $user)
+    {
+        $this->beConstructedWith(
+            'restricted',
+            true,
+            $userProvider,
+            new LdapUserChecker(),
+            $ldap,
+            $dispatcher,
+            $ldapUserProvider,
+            ['login_query_attribute' => 'username']
+        );
+        $user->has('dn')->willReturn(false);
+        $ldapUserProvider->getLdapUser('username', 'foo')->shouldBeCalled()->willReturn(new LdapObject(['dn' => 'cn=foo,dc=foo,dc=bar'], 'user'));
+
         $this->authenticate($token);
     }
 }

@@ -14,7 +14,6 @@ use LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent;
 use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider;
-use LdapTools\Exception\Exception;
 use LdapTools\Exception\LdapConnectionException;
 use LdapTools\Operation\AuthenticationOperation;
 use LdapTools\LdapManager;
@@ -41,10 +40,7 @@ use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface
  */
 class LdapGuardAuthenticator extends AbstractGuardAuthenticator
 {
-    /**
-     * @var LdapManager
-     */
-    protected $ldap;
+    use LdapAuthenticationTrait;
 
     /**
      * @var LdapUserChecker
@@ -86,6 +82,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         'domain_parameter' => '_ldap_domain',
         'post_only' => false,
         'remember_me' => false,
+        'login_query_attribute' => null,
     ];
 
     /**
@@ -97,8 +94,9 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      * @param AuthenticationSuccessHandlerInterface $successHandler
      * @param AuthenticationFailureHandlerInterface $failureHandler
      * @param array $options
+     * @param LdapUserProvider $ldapUserProvider
      */
-    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, AuthenticationEntryPointInterface $entryPoint, EventDispatcherInterface $dispatcher, AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler, array $options)
+    public function __construct($hideUserNotFoundExceptions = true, LdapUserChecker $userChecker, LdapManager $ldap, AuthenticationEntryPointInterface $entryPoint, EventDispatcherInterface $dispatcher, AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler, array $options, LdapUserProvider $ldapUserProvider)
     {
         $this->userChecker = $userChecker;
         $this->ldap = $ldap;
@@ -107,6 +105,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         $this->successHandler = $successHandler;
         $this->failureHandler = $failureHandler;
         $this->options['hide_user_not_found_exceptions'] = $hideUserNotFoundExceptions;
+        $this->ldapUserProvider = $ldapUserProvider;
         $this->options = array_merge($this->options, $options);
     }
 
@@ -136,20 +135,21 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         $domain = $this->ldap->getDomainContext();
 
         try {
-            $this->switchDomainIfNeeded($credentials);
-            $this->setLdapCredentialsIfNeeded($credentials, $userProvider);
+            $credDomain = isset($credentials['ldap_domain']) ? $credentials['ldap_domain'] : '';
+            $this->switchDomainIfNeeded($credDomain);
+            $this->setLdapCredentialsIfNeeded($credentials['username'], $credentials['password'], $userProvider);
             $user = $userProvider->loadUserByUsername($credentials['username']);
             $this->userChecker->checkPreAuth($user);
 
             return $user;
         } catch (UsernameNotFoundException $e) {
-            $this->hideOrThrow($e);
+            $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
         } catch (BadCredentialsException $e) {
-            $this->hideOrThrow($e);
+            $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
         } catch (LdapConnectionException $e) {
-            $this->hideOrThrow($e);
+            $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
         } catch (\Exception $e) {
-            $this->hideOrThrow($e);
+            $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
         } finally {
             $this->switchDomainBackIfNeeded($domain);
         }
@@ -163,10 +163,14 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         $domain = $this->ldap->getDomainContext();
 
         try {
-            $this->switchDomainIfNeeded($credentials);
+            $credDomain = isset($credentials['ldap_domain']) ? $credentials['ldap_domain'] : '';
+            $this->switchDomainIfNeeded($credDomain);
             /** @var \LdapTools\Operation\AuthenticationResponse $response */
             $response = $this->ldap->getConnection()->execute(
-                new AuthenticationOperation($user->getUsername(), $credentials['password'])
+                new AuthenticationOperation(
+                    $this->getBindUsername($user, $this->options['login_query_attribute']),
+                    $credentials['password']
+                )
             );
             if (!$response->isAuthenticated()) {
                 $this->userChecker->checkLdapErrorCode(
@@ -180,13 +184,13 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
             }
             // No way to get the token from the Guard, need to create one to pass...
             $token = new UsernamePasswordToken($user, $credentials['password'], 'ldap-tools', $user->getRoles());
-            $token->setAttribute('ldap_domain', isset($credentials['ldap_domain']) ? $credentials['ldap_domain'] : '');
+            $token->setAttribute('ldap_domain', $credDomain);
             $this->dispatcher->dispatch(
                 LdapLoginEvent::SUCCESS,
                 new LdapLoginEvent($user, $token)
             );
         } catch (\Exception $e) {
-            $this->hideOrThrow($e);
+            $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
         } finally {
             $this->domain = $this->ldap->getDomainContext();
             $this->switchDomainBackIfNeeded($domain);
@@ -275,72 +279,5 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         }
 
         return $value;
-    }
-
-    /**
-     * If no LDAP credentials are in the config then attempt to use the user supplied credentials from the login. But
-     * only if we are using the LdapUserProvider.
-     *
-     * @param array $credentials
-     * @param UserProviderInterface $userProvider
-     */
-    protected function setLdapCredentialsIfNeeded(array $credentials, UserProviderInterface $userProvider)
-    {
-        // Only care about this in the context of the LDAP user provider...
-        if (!$userProvider instanceof LdapUserProvider) {
-            return;
-        }
-
-        // Only if the username/password are not defined in the config....
-        $config = $this->ldap->getConnection()->getConfig();
-        if (!(empty($config->getUsername()) && (empty($config->getPassword() && $config->getPassword() !== '0')))) {
-            return;
-        }
-
-        $config->setUsername($credentials['username']);
-        $config->setPassword($credentials['password']);
-    }
-
-    /**
-     * If the domain needs to a different context for the request, then switch it.
-     *
-     * @param array $credentials
-     */
-    protected function switchDomainIfNeeded(array $credentials)
-    {
-        if (!empty($credentials['ldap_domain']) && $this->ldap->getDomainContext() !== $credentials['ldap_domain']) {
-            $this->ldap->switchDomain($credentials['ldap_domain']);
-        }
-    }
-
-    /**
-     * If the passed domain is not the current context, then switch back to it.
-     *
-     * @param string $domain
-     */
-    protected function switchDomainBackIfNeeded($domain)
-    {
-        if ($domain !== $this->ldap->getDomainContext()) {
-            $this->ldap->switchDomain($domain);
-        }
-    }
-
-    /**
-     * Determine whether or not the exception should be masked with a BadCredentials or not.
-     *
-     * @param \Exception $e
-     * @throws \Exception
-     */
-    protected function hideOrThrow(\Exception $e)
-    {
-        if ($this->options['hide_user_not_found_exceptions']) {
-            throw new BadCredentialsException('Bad credentials.', 0, $e);
-        }
-        // Specifically show LdapTools related exceptions, ignore others.
-        if (!$this->options['hide_user_not_found_exceptions'] && $e instanceof Exception) {
-            throw new CustomUserMessageAuthenticationException($e->getMessage(), [], $e->getCode());
-        }
-
-        throw $e;
     }
 }

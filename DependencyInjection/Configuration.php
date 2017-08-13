@@ -198,6 +198,8 @@ class Configuration implements ConfigurationInterface
                         ->info('The LdapTools object type for the user provider to search for.')->end()
                     ->scalarNode('default_role')->defaultValue('ROLE_USER')
                         ->info('Regardless of group membership this role will be assigned to the loaded user. Set it to null for no roles to be assigned by default.')->end()
+                    ->scalarNode('login_query_attribute')->defaultNull()
+                         ->info('If set the guard/authenticator will query LDAP for for a user with this attribute value using the username provided during login. The resulting user DN will be used to bind to LDAP.')->end()
                     ->booleanNode('check_groups_recursively')
                         ->info('If set to true then group membership will contain all groups, and nested groups, the user belongs to.')->defaultTrue()->end()
                     ->scalarNode('user')->defaultValue('\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser')

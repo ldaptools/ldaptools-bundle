@@ -134,7 +134,7 @@ class LdapUserProvider implements UserProviderInterface
      * @param string $value
      * @return LdapObject
      */
-    protected function getLdapUser($attribute, $value)
+    public function getLdapUser($attribute, $value)
     {
         try {
             $query = $this->ldap->buildLdapQuery()
@@ -191,7 +191,7 @@ class LdapUserProvider implements UserProviderInterface
         } catch (\Exception $e) {
             throw new UnsupportedUserException(sprintf($errorMessage, $this->options['user'], $e->getMessage()));
         }
-        // If the class also happens to extends the LdapTools LdapObject class, then set the attributes and type...
+        // If the class also happens to extend the LdapTools LdapObject class, then set the attributes and type...
         if ($user instanceof LdapObject) {
             $this->hydrateLdapObjectUser($ldapObject, $user);
         }

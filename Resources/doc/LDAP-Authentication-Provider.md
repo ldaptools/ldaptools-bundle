@@ -104,12 +104,15 @@ LDAP user provider provides an extended instance of `\LdapTools\Object\LdapObjec
 
 ## LDAP Authentication Username
 
-By default when you configure the authentication to use LDAP it will use the provided username from `getUsername()` of
-the user from the UserProvider to bind to LDAP. In the case of Active Directory this will work fine with no modification
-needed. However, OpenLDAP and other LDAPs may require a full DN for login.
+The following logic is used to determine how to authenticate users against LDAP in the Guard/Authentication Provider of
+this bundle:
 
-To get around the above you can define a `bind_format` option in LdapTools to form a full DN for the bind. An example of
-this would be:
+  1. Always prefer a DN from a default user from this bundle's LDAP user provider, or LdapObject instance from LdapTools
+  2. If the `login_query_attribute` option is defined, query LDAP with the username against that value to get a DN for login.
+  3. Use the value of the `getUsername()` method from the user and attempt authentication against LDAP with that.
+     
+If you need to go with option 3 and you use OpenLDAP, you may need to define a `bind_format` option in LdapTools to form
+a full DN for the login. An example of this would be:
 
 ```yaml
 ldap_tools:

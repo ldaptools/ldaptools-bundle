@@ -98,6 +98,8 @@
             <argument type="service" id="ldap_tools.security.user.ldap_user_checker" />
             <argument type="service" id="ldap_tools.ldap_manager" />
             <argument type="service" id="event_dispatcher" />
+            <argument type="service" id="ldap_tools.security.user.ldap_user_provider" /> <!-- First one is configurable, this is not... -->
+            <argument>%ldap_tools.security.authentication.ldap_authentication_provider.options%</argument><!-- Configurable options -->
         </service>
 
         <service id="ldap_tools.security.ldap_guard_authenticator" class="%ldap_tools.security.ldap_guard_authenticator.class%">
@@ -109,6 +111,7 @@
             <argument type="service" id="ldap_tools.security.auth_success_handler" />
             <argument type="service" id="ldap_tools.security.auth_failure_handler" />
             <argument>%ldap_tools.security.guard.options%</argument>
+            <argument type="service" id="ldap_tools.security.user.ldap_user_provider" />
         </service>
 
         <service id="ldap_tools.form.type.ldap_object" class="%ldap_tools.form.type.ldap_object.class%">
