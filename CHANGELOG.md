@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.8.0 (2017-08-13)
+------------------
+  * Bumped the minimum Symfony version requirement to 2.7.
+  * Improved the default LDAP authenticator bind logic for OpenLDAP/AD.
+  * The login username can now be configured to query LDAP for a DN to bind with for a given LDAP attribute.
+  * LDAP Group-to-Role mapping is now usable as a service (ldap_tools.security.user.ldap_role_mapper).
+  * The username/password is no longer required for the domain configurations.
+  * By default domain configurations now lazy bind, and only connect/bind when absolutely needed.
+  * Refactored configuration of the LDAP User Provider.
+  * Bumped the minimum LdapTools version requirement.
+
 0.7.0 (2017-04-14)
 ------------------  
   * Add Guard redirection settings to the security config section of the bundle.
