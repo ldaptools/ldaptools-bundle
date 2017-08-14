@@ -148,7 +148,7 @@ The above would grant any user that is a member of the `Domain Admins` LDAP grou
 can specify any number of LDAP group names for a specific role. Group membership is checked recursively by default for
 Active Directory. You can also mix DNs, SIDs, GUIDs, and names mapped to a specific role.
 
-By default the `ROLE_USER` is assigned to any LDAP user that successfully authenticates. The change this behavior you
+By default the `ROLE_USER` is assigned to any LDAP user that successfully authenticates. To change this behavior you
 can modify the bundle config:
 
 ```yaml
