@@ -10,7 +10,7 @@
 
 namespace LdapTools\Bundle\LdapToolsBundle\Security\User;
 
-use LdapTools\Connection\ADResponseCodes;
+use LdapTools\Enums\AD\ResponseCode;
 use LdapTools\Connection\LdapConnection;
 use Symfony\Component\Security\Core\Exception\CredentialsExpiredException;
 use Symfony\Component\Security\Core\Exception\DisabledException;
@@ -34,19 +34,19 @@ class LdapUserChecker extends UserChecker
      */
     public function checkLdapErrorCode(UserInterface $user, $code, $ldapType)
     {
-        if ($ldapType == LdapConnection::TYPE_AD && $code == ADResponseCodes::ACCOUNT_LOCKED) {
+        if ($ldapType == LdapConnection::TYPE_AD && $code == ResponseCode::AccountLocked) {
             $ex = new LockedException('User account is locked.');
             $ex->setUser($user);
             throw $ex;
         }
 
-        if ($ldapType == LdapConnection::TYPE_AD && $code == ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE) {
+        if ($ldapType == LdapConnection::TYPE_AD && $code == ResponseCode::AccountPasswordMustChange) {
             $ex = new CredentialsExpiredException('User credentials have expired.');
             $ex->setUser($user);
             throw $ex;
         }
 
-        if ($ldapType == LdapConnection::TYPE_AD && $code == ADResponseCodes::ACCOUNT_DISABLED) {
+        if ($ldapType == LdapConnection::TYPE_AD && $code == ResponseCode::AccountDisabled) {
             $ex = new DisabledException('User account is disabled.');
             $ex->setUser($user);
             throw $ex;

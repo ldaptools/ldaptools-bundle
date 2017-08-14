@@ -13,7 +13,7 @@ namespace spec\LdapTools\Bundle\LdapToolsBundle\Security\Authentication\Provider
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider;
-use LdapTools\Connection\ADResponseCodes;
+use LdapTools\Enums\AD\ResponseCode;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
 use LdapTools\Exception\LdapConnectionException;
@@ -173,19 +173,19 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
 
     function it_should_throw_an_account_locked_exception_if_detected_by_the_auth_error_code($connection, $token)
     {
-        $connection->execute($this->operation)->willReturn(new AuthenticationResponse(false,'foo', ADResponseCodes::ACCOUNT_LOCKED));
+        $connection->execute($this->operation)->willReturn(new AuthenticationResponse(false,'foo', ResponseCode::AccountLocked));
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\LockedException')->duringAuthenticate($token);
     }
 
     function it_should_throw_an_account_disabled_exception_if_detected_by_the_auth_error_code($connection, $token)
     {
-        $connection->execute($this->operation)->willReturn(new AuthenticationResponse(false,'foo', ADResponseCodes::ACCOUNT_DISABLED));
+        $connection->execute($this->operation)->willReturn(new AuthenticationResponse(false,'foo', ResponseCode::AccountDisabled));
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\DisabledException')->duringAuthenticate($token);
     }
 
     function it_should_throw_a_credentials_expired_exception_if_detected_by_the_auth_error_code($connection, $token)
     {
-        $connection->execute($this->operation)->willReturn(new AuthenticationResponse(false,'foo', ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE));
+        $connection->execute($this->operation)->willReturn(new AuthenticationResponse(false,'foo', ResponseCode::AccountPasswordMustChange));
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\CredentialsExpiredException')->duringAuthenticate($token);
     }
 

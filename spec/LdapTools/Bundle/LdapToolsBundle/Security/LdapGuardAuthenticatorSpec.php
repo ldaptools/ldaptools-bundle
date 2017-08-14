@@ -14,7 +14,7 @@ use LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserChecker;
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUserProvider;
-use LdapTools\Connection\ADResponseCodes;
+use LdapTools\Enums\AD\ResponseCode;
 use LdapTools\Connection\LdapConnectionInterface;
 use LdapTools\DomainConfiguration;
 use LdapTools\Exception\InvalidArgumentException;
@@ -219,7 +219,7 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(false, 'foo', 1));
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\BadCredentialsException')->duringCheckCredentials($credentials, $user);
 
-        $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(false, 'foo', ADResponseCodes::ACCOUNT_DISABLED));
+        $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(false, 'foo', ResponseCode::AccountDisabled));
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\BadCredentialsException')->duringCheckCredentials($credentials, $user);
     }
     
@@ -231,12 +231,12 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $user = (new LdapUser())->refresh(['guid' => 'foo', 'username' => 'foo']);
         
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(
-            new AuthenticationResponse(false, ADResponseCodes::RESPONSE_MESSAGE[ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE], ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE)
+            new AuthenticationResponse(false, ResponseCode::getMessageForError(ResponseCode::AccountPasswordMustChange), ResponseCode::AccountPasswordMustChange)
         );
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\CredentialsExpiredException')->duringCheckCredentials($this->credentials, $user);
 
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(
-            new AuthenticationResponse(false, ADResponseCodes::RESPONSE_MESSAGE[ADResponseCodes::ACCOUNT_DISABLED], ADResponseCodes::ACCOUNT_DISABLED)
+            new AuthenticationResponse(false, ResponseCode::getMessageForError(ResponseCode::AccountDisabled), ResponseCode::AccountDisabled)
         );
         $this->shouldThrow('Symfony\Component\Security\Core\Exception\DisabledException')->duringCheckCredentials($this->credentials, $user);
         

@@ -11,7 +11,7 @@
 namespace spec\LdapTools\Bundle\LdapToolsBundle\Security\User;
 
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
-use LdapTools\Connection\ADResponseCodes;
+use LdapTools\Enums\AD\ResponseCode;
 use LdapTools\Connection\LdapConnection;
 use PhpSpec\ObjectBehavior;
 
@@ -36,7 +36,7 @@ class LdapUserCheckerSpec extends ObjectBehavior
     {
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\DisabledException')->duringCheckLdapErrorCode(
             $user,
-            ADResponseCodes::ACCOUNT_DISABLED,
+            ResponseCode::AccountDisabled,
             LdapConnection::TYPE_AD
         );
     }
@@ -45,7 +45,7 @@ class LdapUserCheckerSpec extends ObjectBehavior
     {
         $this->shouldNotThrow('\Symfony\Component\Security\Core\Exception\DisabledException')->duringCheckLdapErrorCode(
             $user,
-            ADResponseCodes::ACCOUNT_DISABLED,
+            ResponseCode::AccountDisabled,
             LdapConnection::TYPE_OPENLDAP
         );
     }
@@ -54,7 +54,7 @@ class LdapUserCheckerSpec extends ObjectBehavior
     {
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\LockedException')->duringCheckLdapErrorCode(
             $user,
-            ADResponseCodes::ACCOUNT_LOCKED,
+            ResponseCode::AccountLocked,
             LdapConnection::TYPE_AD
         );
     }
@@ -63,7 +63,7 @@ class LdapUserCheckerSpec extends ObjectBehavior
     {
         $this->shouldNotThrow('\Symfony\Component\Security\Core\Exception\LockedException')->duringCheckLdapErrorCode(
             $user,
-            ADResponseCodes::ACCOUNT_LOCKED,
+            ResponseCode::AccountLocked,
             LdapConnection::TYPE_OPENLDAP
         );
     }
@@ -72,7 +72,7 @@ class LdapUserCheckerSpec extends ObjectBehavior
     {
         $this->shouldThrow('\Symfony\Component\Security\Core\Exception\CredentialsExpiredException')->duringCheckLdapErrorCode(
             $user,
-            ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE,
+            ResponseCode::AccountPasswordMustChange,
             LdapConnection::TYPE_AD
         );
     }
@@ -81,7 +81,7 @@ class LdapUserCheckerSpec extends ObjectBehavior
     {
         $this->shouldNotThrow('\Symfony\Component\Security\Core\Exception\CredentialsExpiredException')->duringCheckLdapErrorCode(
             $user,
-            ADResponseCodes::ACCOUNT_PASSWORD_MUST_CHANGE,
+            ResponseCode::AccountPasswordMustChange,
             LdapConnection::TYPE_OPENLDAP
         );
     }
