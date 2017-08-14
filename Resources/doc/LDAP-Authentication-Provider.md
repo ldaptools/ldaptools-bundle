@@ -364,7 +364,7 @@ ldap_tools:
     # ...
 ```
 
-Having both of these set to true by default means no LDAP queries will be performed for the user while they are still 
+Having both of these set to false by default means no LDAP queries will be performed for the user while they are still 
 logged in. Any changes in LDAP (such as their account being renamed, disabled, locked, expired, etc) will not take effect
 until they logout and log back into the web application. Any group membership changes that affect roles will not be 
 noticed  after the initial login. To change this behavior modify the above settings as needed. However, this may
