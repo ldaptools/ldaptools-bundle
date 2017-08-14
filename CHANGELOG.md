@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+0.8.1 (2017-08-13)
+------------------
+  * Correct a deprecation in the Active Directory Response Code checking.
+
 0.8.0 (2017-08-13)
 ------------------
   * Bumped the minimum Symfony version requirement to 2.7.
