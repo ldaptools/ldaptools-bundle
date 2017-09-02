@@ -32,6 +32,7 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Component\Security\Http\EntryPoint\BasicAuthenticationEntryPoint;
 
 /**
  * LDAP Guard Authenticator.
@@ -83,6 +84,9 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         'post_only' => false,
         'remember_me' => false,
         'login_query_attribute' => null,
+        'http_basic' => false,
+        'http_basic_realm' => null,
+        'http_basic_domain' => null,
     ];
 
     /**
@@ -115,9 +119,9 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     public function getCredentials(Request $request)
     {
         $credentials = [
-            'username' => $this->getRequestParameter($this->options['username_parameter'], $request),
-            'password' => $this->getRequestParameter($this->options['password_parameter'], $request),
-            'ldap_domain' => $this->getRequestParameter($this->options['domain_parameter'], $request),
+            'username' => $this->getRequestUsername($request),
+            'password' => $this->getRequestPassword($request),
+            'ldap_domain' => $this->getRequestDomain($request),
         ];
         if (empty($credentials['username'])) {
             return null;
@@ -213,7 +217,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         );
         $this->dispatcher->dispatch(AuthenticationHandlerEvent::SUCCESS, $event);
 
-        return $event->getResponse();
+        return $this->options['http_basic'] ? null : $event->getResponse();
     }
 
     /**
@@ -228,7 +232,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         );
         $this->dispatcher->dispatch(AuthenticationHandlerEvent::FAILURE, $event);
 
-        return $event->getResponse();
+        return $this->options['http_basic'] ? null : $event->getResponse();
     }
 
     /**
@@ -236,8 +240,9 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
      */
     public function start(Request $request, AuthenticationException $authException = null)
     {
+        $entryPoint = $this->options['http_basic'] ? new BasicAuthenticationEntryPoint($this->getHttpBasicRealm()) : $this->entryPoint;
         $event = new AuthenticationHandlerEvent(
-            $this->entryPoint->start($request, $authException),
+            $entryPoint->start($request, $authException),
             $request,
             $authException
         );
@@ -266,6 +271,45 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     }
 
     /**
+     * @param Request $request
+     * @return null|string
+     */
+    protected function getRequestUsername(Request $request)
+    {
+        if ($this->options['http_basic']) {
+            return $request->server->get('PHP_AUTH_USER');
+        } else{
+            return $this->getRequestParameter($this->options['username_parameter'], $request);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return null|string
+     */
+    protected function getRequestPassword(Request $request)
+    {
+        if ($this->options['http_basic']) {
+            return $request->server->get('PHP_AUTH_PW');
+        } else{
+            return $this->getRequestParameter($this->options['password_parameter'], $request);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return null|string
+     */
+    protected function getRequestDomain(Request $request)
+    {
+        if ($this->options['http_basic']) {
+            return $this->options['http_basic_domain'];
+        } else{
+            return $this->getRequestParameter($this->options['domain_parameter'], $request);
+        }
+    }
+
+    /**
      * @param string $param
      * @param Request $request
      * @return string|null
@@ -279,5 +323,21 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
         }
 
         return $value;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getHttpBasicRealm()
+    {
+        if ($this->options['http_basic_realm'] !== null) {
+            $realm = $this->options['http_basic_realm'];
+        } elseif ($this->options['http_basic_domain'] !== null) {
+            $realm = $this->options['http_basic_domain'];
+        } else {
+            $realm = $this->ldap->getDomainContext();
+        }
+
+        return $realm;
     }
 }

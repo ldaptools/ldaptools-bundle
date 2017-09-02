@@ -48,7 +48,10 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             'security' => [
                 'login_query_attribute' => null,
                 'guard' => [
-                    'remember_me' => true
+                    'remember_me' => true,
+                    'http_basic' => false,
+                    'http_basic_domain' => null,
+                    'http_basic_realm' => null,
                 ]
             ],
             'domains' => [
@@ -159,6 +162,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "post_only" => false,
             'remember_me' => true,
             'login_query_attribute' => null,
+            'http_basic' => false,
+            'http_basic_domain' => null,
+            'http_basic_realm' => null,
         ])->shouldBeCalled();
         $container->setParameter("ldap_tools.security.authentication.ldap_authentication_provider.options", [
             'login_query_attribute' => null,
@@ -329,6 +335,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "post_only" => false,
             'remember_me' => true,
             'login_query_attribute' => 'username',
+            'http_basic' => false,
+            'http_basic_domain' => null,
+            'http_basic_realm' => null,
         ])->shouldBeCalled();
         $container->setParameter("ldap_tools.security.authentication.ldap_authentication_provider.options", [
             'login_query_attribute' => 'username',

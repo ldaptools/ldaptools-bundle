@@ -28,6 +28,7 @@ use Prophecy\Argument;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -108,7 +109,25 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         
         $this->getCredentials($this->request)->shouldBeEqualTo(['username' => 'foo', 'password' => 'bar', 'ldap_domain' => 'foo.bar']);
     }
-    
+
+    function it_should_get_the_credentials_array_with_http_basic($ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure, $ldapUserProvider)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['http_basic' => true], $ldapUserProvider);
+
+        $this->request->server->add(['PHP_AUTH_USER' => 'foo', 'PHP_AUTH_PW' => 'bar']);
+
+        $this->getCredentials($this->request)->shouldBeEqualTo(['username' => 'foo', 'password' => 'bar', 'ldap_domain' => null]);
+    }
+
+    function it_should_get_the_domain_in_the_credentials_array_with_http_basic_if_specified($ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure, $ldapUserProvider)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['http_basic' => true, 'http_basic_domain' => 'foo.bar'], $ldapUserProvider);
+
+        $this->request->server->add(['PHP_AUTH_USER' => 'foo', 'PHP_AUTH_PW' => 'bar']);
+
+        $this->getCredentials($this->request)->shouldHaveKeyWithValue('ldap_domain', 'foo.bar');
+    }
+
     function it_should_get_null_when_getting_the_credentials_array_with_no_username_set()
     {
         $this->getCredentials($this->request)->shouldBeNull();
@@ -385,5 +404,41 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
 
         $connection->execute(new AuthenticationOperation('cn=foo,dc=foo,dc=bar', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
         $this->checkCredentials($credentials, $user)->shouldReturn(true);
+    }
+
+    function it_should_use_http_basic_authentication_on_start_if_specified($ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure, $ldapUserProvider)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['http_basic' => true], $ldapUserProvider);
+
+        $response = new Response();
+        $response->headers->set('WWW-Authenticate', 'Basic realm="foo.bar"');
+        $response->setStatusCode(401);
+
+        $this->start($this->request, null)->shouldBeLike($response);
+    }
+
+    function it_should_return_null_when_using_http_basic_on_authentication_success(Request $request, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure, $ldapUserProvider, TokenInterface $token)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['http_basic' => true], $ldapUserProvider);
+
+        $this->onAuthenticationSuccess($request, $token, 'main')->shouldBeNull();
+    }
+
+    function it_should_return_null_when_using_http_basic_on_authentication_failure(Request $request, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure, $ldapUserProvider)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['http_basic' => true], $ldapUserProvider);
+
+        $this->onAuthenticationFailure($request, new AuthenticationException('foo'))->shouldBeNull();
+    }
+
+    function it_should_set_the_http_basic_realm_if_specified($ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure, $ldapUserProvider)
+    {
+        $this->beConstructedWith(false, $this->userChecker, $ldap, $entryPoint, $dispatcher, $authSuccess, $authFailure,  ['http_basic' => true, 'http_basic_realm' => 'Secret Area'], $ldapUserProvider);
+
+        $response = new Response();
+        $response->headers->set('WWW-Authenticate', 'Basic realm="Secret Area"');
+        $response->setStatusCode(401);
+
+        $this->start($this->request, null)->shouldBeLike($response);
     }
 }

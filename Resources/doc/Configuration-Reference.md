@@ -153,6 +153,28 @@ Set this to true if you want user roles re-queried on a user refresh from the Ld
 These are Guard specific security settings under the `security.guard` section.
 
  ------------------
+#### http_basic
+
+Whether or not the guard should be used for HTTP basic authentication.
+
+**Default**: `false`
+
+ ------------------
+#### http_basic_domain
+
+A specific domain name to use for HTTP basic authentication. If not set it will use the default domain for LdapTools.
+
+**Default**: `null`
+
+ ------------------
+#### http_basic_realm
+
+A specific realm for HTTP basic authentication prompt. If not set it will first use the `http_basic_domain` value if set.
+If that is not set it will use the default domain name from LdapTools.
+
+**Default**: `null`
+
+ ------------------
 #### login_path
 
 Refer to: http://symfony.com/doc/current/reference/configuration/security.html#login-path

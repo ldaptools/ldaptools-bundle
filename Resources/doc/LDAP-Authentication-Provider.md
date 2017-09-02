@@ -3,6 +3,7 @@ LDAP Authentication Provider
 
   * [Symfony 2.8+](#symfony-28-use-the-guard-component)
   * [Symfony 2.7](#symfony-23-use-ldap_tools_form-custom-authentication-type)
+  * [HTTP Basic Authentication](#http-basic-authentication)
   * [LDAP Authentication Username](#ldap-authentication-username)
   * [Mapping LDAP Groups to Roles](#mapping-ldap-groups-to-roles)
   * [Mapping LDAP Attributes](#mapping-ldap-attributes)
@@ -101,6 +102,48 @@ security:
 
 The LDAP provider is used for the purpose of these examples, but other user providers can be substituted. By default the
 LDAP user provider provides an extended instance of `\LdapTools\Object\LdapObject`.
+
+### HTTP Basic Authentication
+
+HTTP Basic Authentication can be used by using a specific Guard setting. In your bundle config you would first set it:
+
+```yaml
+# app/config/config.yml
+ldap_tools:
+    # Setup your domain like usual...
+    domains:
+        example:
+            domain_name: example.local
+            servers: [ dc1.example.local ]
+            use_tls: true
+    # Tell it you want the guard to do HTTP Basic auth...
+    security:
+        guard:
+            http_basic: true
+```
+
+Then make sure to set your security. This would secure the whole site with LDAP:
+
+```yaml
+# app/config/security.yml
+
+security:
+
+    # https://symfony.com/doc/current/security.html#b-configuring-how-users-are-loaded
+    providers:
+        ldap:
+            id: ldap_tools.security.user.ldap_user_provider
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt|error)|css|images|js)/
+            security: false
+
+        default:
+            guard:
+                authenticators:
+                    - ldap_tools.security.ldap_guard_authenticator
+```
 
 ## LDAP Authentication Username
 
@@ -219,6 +262,9 @@ ldap_tools:
             failure_forward: false
             failure_path_parameter: '_failure_path'
             remember_me: false
+            http_basic: false
+            http_basic_domain: null
+            http_basic_realm: null
 ```
 
 ## Guard Redirection
