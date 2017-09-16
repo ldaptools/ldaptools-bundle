@@ -114,6 +114,19 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     }
 
     /**
+     * Allows to more easily extend the base LDAP guard service and set specific options.
+     *
+     * @param array $options
+     * @return $this
+     */
+    public function setOptions(array $options)
+    {
+        $this->options = array_merge($this->options, $options);
+
+        return $this;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getCredentials(Request $request)

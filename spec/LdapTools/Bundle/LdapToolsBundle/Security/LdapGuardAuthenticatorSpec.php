@@ -441,4 +441,16 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
 
         $this->start($this->request, null)->shouldBeLike($response);
     }
+
+    function it_should_allow_setting_options_via_the_setOptions_method()
+    {
+        $this->setOptions(['username_parameter' => '_foo']);
+        $this->request->request->add([
+            '_foo' => 'foo',
+            '_password' => 'bar',
+            '_ldap_domain' => 'foo.bar',
+        ]);
+
+        $this->getCredentials($this->request)->shouldHaveKeyWithValue('username','foo');
+    }
 }
