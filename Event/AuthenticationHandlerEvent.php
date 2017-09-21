@@ -66,7 +66,7 @@ class AuthenticationHandlerEvent extends Event
     /**
      * @param Response $response
      * @param Request $request
-     * @param \Exception|null $exception
+     * @param null|AuthenticationException $exception
      * @param TokenInterface|null $token
      * @param string|null $providerKey
      */
