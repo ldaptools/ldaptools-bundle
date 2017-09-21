@@ -15,6 +15,7 @@ use PhpSpec\ObjectBehavior;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class AuthenticationHandlerEventSpec extends ObjectBehavior
 {
@@ -38,7 +39,7 @@ class AuthenticationHandlerEventSpec extends ObjectBehavior
 
     function it_should_be_constructed_with_an_exception_provider_key_and_token($redirectResponse, $request, TokenInterface $token)
     {
-        $exception = new \Exception('foo');
+        $exception = new AuthenticationException('foo');
         $this->beConstructedWith($redirectResponse, $request, $exception, $token, 'foo');
 
         $this->getToken()->shouldBeEqualTo($token);
