@@ -14,6 +14,7 @@ use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 /**
  * Represents an authentication handler event, such as success or failure, where the response can be set.
@@ -43,7 +44,7 @@ class AuthenticationHandlerEvent extends Event
     protected $response;
 
     /**
-     * @var \Exception|null
+     * @var AuthenticationException|null
      */
     protected $exception;
 
@@ -69,7 +70,7 @@ class AuthenticationHandlerEvent extends Event
      * @param TokenInterface|null $token
      * @param string|null $providerKey
      */
-    public function __construct(Response $response, Request $request, \Exception $exception = null, TokenInterface $token = null, $providerKey = null)
+    public function __construct(Response $response, Request $request, AuthenticationException $exception = null, TokenInterface $token = null, $providerKey = null)
     {
         $this->request = $request;
         $this->response = $response;
@@ -106,7 +107,7 @@ class AuthenticationHandlerEvent extends Event
     }
 
     /**
-     * @return \Exception|null
+     * @return AuthenticationException|null
      */
     public function getException()
     {
