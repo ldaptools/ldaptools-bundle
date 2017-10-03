@@ -227,7 +227,6 @@ Also make sure to set your access control properly. It should look something lik
 # app/config/security.yml
 
     access_control:
-        - { path: ^/translations$, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, roles: ROLE_USER }
 ```
