@@ -13,16 +13,11 @@ namespace LdapTools\Bundle\LdapToolsBundle\Security\Firewall;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Security\Http\ParameterBagUtils;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderAdapter;
-use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -41,7 +36,7 @@ use Psr\Log\LoggerInterface;
 class LdapFormLoginListener extends AbstractAuthenticationListener
 {
     /**
-     * @var CsrfProviderAdapter|CsrfTokenManagerInterface|null
+     * @var CsrfTokenManagerInterface|null
      */
     private $csrfTokenManager;
 
@@ -58,7 +53,7 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
     ];
 
     /**
-     * @param TokenStorageInterface|SecurityContextInterface $tokenStorage
+     * @param TokenStorageInterface $tokenStorage
      * @param AuthenticationManagerInterface $authenticationManager
      * @param SessionAuthenticationStrategyInterface $sessionStrategy
      * @param HttpUtils $httpUtils
@@ -68,11 +63,10 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
      * @param array $options
      * @param LoggerInterface $logger
      * @param EventDispatcherInterface $dispatcher
-     * @param null $csrfTokenManager
-     * @throws InvalidArgumentException|\InvalidArgumentException
+     * @param null|CsrfTokenManagerInterface $csrfTokenManager
      */
     public function __construct(
-        $tokenStorage,
+        TokenStorageInterface $tokenStorage,
         AuthenticationManagerInterface $authenticationManager,
         SessionAuthenticationStrategyInterface $sessionStrategy,
         HttpUtils $httpUtils,
@@ -82,15 +76,9 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
         array $options = [],
         LoggerInterface $logger = null,
         EventDispatcherInterface $dispatcher = null,
-        $csrfTokenManager = null
+        CsrfTokenManagerInterface $csrfTokenManager = null
     ) {
-        // Requires some additional logic for BC...
-        $csrfTokenManager = $this->getCsrfManager($csrfTokenManager);
-
-        // TokenStorageInterface is Symfony 2.6 and onwards...
-        if (!($tokenStorage instanceof TokenStorageInterface || $tokenStorage instanceof  SecurityContextInterface)) {
-            $this->throwInvalidArgumentException('The first argument should be an instance of SecurityContext or TokenStorage.');
-        }
+        $this->csrfTokenManager = $csrfTokenManager;
 
         parent::__construct(
             $tokenStorage,
@@ -104,7 +92,6 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
             $logger,
             $dispatcher
         );
-        $this->csrfTokenManager = $csrfTokenManager;
     }
 
     /**
@@ -144,7 +131,7 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
             $username = trim($this->getParameterFromRequest($request, $this->options['username_parameter']));
             $password = $this->getParameterFromRequest($request, $this->options['password_parameter']);
         }
-        $this->setLastUsernameInSession($request, $username);
+        $request->getSession()->set(Security::LAST_USERNAME, $username);
 
         $token = new UsernamePasswordToken($username, $password, $this->providerKey);
         $this->addDomainToTokenIfPresent($request, $token);
@@ -171,31 +158,6 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
     }
 
     /**
-     * A BC wrapper to determine how to handle the CSRF parameter in the constructor.
-     *
-     * @param null|CsrfProviderInterface|CsrfTokenManagerInterface $csrf
-     */
-    protected function getCsrfManager($csrf)
-    {
-        if (Kernel::VERSION < '2.4') {
-            if (!is_null($csrf) && !($csrf instanceof CsrfProviderInterface)) {
-                // The Security Core InvalidArgumentException did not exist at this version.
-                throw new \InvalidArgumentException('The CSRF provider must implement CsrfProviderInterface');
-            }
-
-            return $csrf;
-        }
-
-        if ($csrf instanceof CsrfProviderInterface) {
-            $csrf = new CsrfProviderAdapter($csrf);
-        } elseif (!is_null($csrf) && !($csrf instanceof CsrfTokenManagerInterface)) {
-            throw new InvalidArgumentException('The CSRF token manager should be an instance of CsrfProviderInterface or CsrfTokenManagerInterface.');
-        }
-
-        return $csrf;
-    }
-
-    /**
      * Provide a BC wrapper for CSRF token manager/provider compatibility between versions.
      *
      * @param Request $request
@@ -207,16 +169,8 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
         }
         $csrfToken = $this->getParameterFromRequest($request, $this->options['csrf_parameter']);
 
-        if ($this->csrfTokenManager instanceof CsrfTokenManagerInterface) {
-            if (false === $this->csrfTokenManager->isTokenValid(new CsrfToken($this->options['intention'], $csrfToken))) {
-                throw new InvalidCsrfTokenException('Invalid CSRF token.');
-            }
-        }
-
-        if ($this->csrfTokenManager instanceof CsrfProviderInterface) {
-            if (false === $this->csrfTokenManager->isCsrfTokenValid($this->options['intention'], $csrfToken)) {
-                throw new InvalidCsrfTokenException('Invalid CSRF token.');
-            }
+        if (false === $this->csrfTokenManager->isTokenValid(new CsrfToken($this->options['intention'], $csrfToken))) {
+            throw new InvalidCsrfTokenException('Invalid CSRF token.');
         }
     }
 
@@ -260,36 +214,5 @@ class LdapFormLoginListener extends AbstractAuthenticationListener
     protected function useParameterBagUtils()
     {
         return class_exists('Symfony\Component\Security\Http\ParameterBagUtils');
-    }
-
-    /**
-     * Yet another BC wrapper to account for changes in the way that the last username is set in the session.
-     *
-     * @param Request $request
-     * @param string $username
-     */
-    protected function setLastUsernameInSession(Request $request, $username)
-    {
-        // Security class only exists post Symfony 2.6 and onwards...
-        if (class_exists('\Symfony\Component\Security\Core\Security')) {
-            $request->getSession()->set(Security::LAST_USERNAME, $username);
-        } else {
-            $request->getSession()->set(SecurityContextInterface::LAST_USERNAME, $username);
-        }
-    }
-
-    /**
-     * Another BC wrapper since the security core invalid argument exception did not exist early on.
-     *
-     * @param string $message
-     * @throws InvalidArgumentException|\InvalidArgumentException
-     */
-    protected function throwInvalidArgumentException($message)
-    {
-        if (class_exists('\Symfony\Component\Security\Core\Exception\InvalidArgumentException')) {
-            throw new InvalidArgumentException($message);
-        } else {
-            throw new \InvalidArgumentException($message);
-        }
     }
 }
