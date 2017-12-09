@@ -37,7 +37,7 @@
             <argument type="service" id="ldap_tools.configuration"/>
         </service>
 
-        <service id="ldap_tools.ldap_manager" alias="LdapTools\LdapManager" />
+        <service id="ldap_tools.ldap_manager" alias="LdapTools\LdapManager" public="true"/>
 
         <service id="ldap_tools.log.logger_chain" class="%ldap_tools.log.logger_chain.class%" />
 
