@@ -120,7 +120,8 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         // These are all the definitions that should be processed from the services resource file...
         $container->setDefinition('ldap_tools.configuration', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.event_dispatcher', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
-        $container->setDefinition('ldap_tools.ldap_manager', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
+        $container->setAlias('ldap_tools.ldap_manager', Argument::type('Symfony\Component\DependencyInjection\Alias'))->shouldBeCalled();
+        $container->setDefinition('LdapTools\LdapManager', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.log.logger_chain', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.log.profiler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.log.logger', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
@@ -203,6 +204,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
     function it_should_set_the_profiler_and_logger_when_the_kernel_is_in_debug_mode($container, $loggerDef)
     {
         $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();
+        $container->setAlias(Argument::any(), Argument::any())->shouldBeCalled();
         $container->setParameter(Argument::any(), Argument::any())->shouldBeCalled();
 
         $container->getParameter('kernel.debug')->willReturn(true);
@@ -215,6 +217,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
     function it_should_set_the_cache_type_to_none_when_the_kernel_is_in_debug_mode($container, $configDef)
     {
         $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();
+        $container->setAlias(Argument::any(), Argument::any())->shouldBeCalled();
         $container->setParameter(Argument::any(), Argument::any())->shouldBeCalled();
         $configDef->addMethodCall('setEventDispatcher', Argument::any())->shouldBeCalled();
         $configDef->addMethodCall('setLogger', Argument::any())->shouldBeCalled();
@@ -230,6 +233,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
     function it_should_set_security_settings_specified_in_the_config($container)
     {
         $container->setDefinition(Argument::any(), Argument::any())->shouldBeCalled();
+        $container->setAlias(Argument::any(), Argument::any())->shouldBeCalled();
         $container->setParameter(Argument::any(), Argument::any())->shouldBeCalled();
 
         $config = $this->config;
@@ -270,7 +274,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         unset($config['ldap_tools']['domains']);
 
         $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setAlias(Argument::any(), Argument::any())->willReturn($def);
         $container->getDefinition(Argument::any())->willReturn($def);
+        $container->getAlias(Argument::any())->willReturn($def);
         $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
 
         // Should not be set when there are no domains...
@@ -286,7 +292,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config['ldap_tools']['doctrine']['integration_enabled'] = false;
 
         $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setAlias(Argument::any(), Argument::any())->willReturn($def);
         $container->getDefinition(Argument::any())->willReturn($def);
+        $container->getAlias(Argument::any())->willReturn($def);
         $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
 
         $doctrineEvents->addTag(Argument::any(), Argument::any())->shouldNotBeCalled();
@@ -300,7 +308,9 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config['ldap_tools']['doctrine']['connections'] = ['foo', 'bar'];
 
         $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setAlias(Argument::any(), Argument::any())->willReturn($def);
         $container->getDefinition(Argument::any())->willReturn($def);
+        $container->getAlias(Argument::any())->willReturn($def);
         $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
 
         $doctrineEvents->addTag("doctrine.event_subscriber", ['connection' => 'foo'])->shouldBeCalled();
@@ -316,6 +326,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         unset($config['ldap_tools']['domains']['foo.bar']['password']);
 
         $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setAlias(Argument::any(), Argument::any())->willReturn($def);
         $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
 
         $this->shouldNotThrow('\Exception')->duringLoad($config, $container);
@@ -326,6 +337,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $config = $this->config;
         $config['ldap_tools']['security']['login_query_attribute'] = 'username';
         $container->setDefinition(Argument::any(), Argument::any())->willReturn($def);
+        $container->setAlias(Argument::any(), Argument::any())->willReturn($def);
         $container->setParameter(Argument::any(), Argument::any())->willReturn($def);
 
         $container->setParameter("ldap_tools.security.guard.options", [
