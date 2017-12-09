@@ -115,6 +115,18 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
         ]);
     }
 
+    function it_should_reset_data(Request $request, Response $response)
+    {
+        $this->collect($request, $response);
+        $this->reset();
+
+        $this->getOperations()->shouldBeEqualTo([]);
+        $this->getOperationsByDomain()->shouldBeEqualTo([]);
+        $this->getDomains()->shouldBeEqualTo([]);
+        $this->getTime()->shouldBeEqualTo(0);
+        $this->getErrors()->shouldBeEqualTo([]);
+    }
+
     public function getMatchers()
     {
         return [

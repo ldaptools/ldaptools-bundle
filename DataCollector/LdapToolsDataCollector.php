@@ -43,11 +43,7 @@ class LdapToolsDataCollector extends DataCollector
     {
         $this->ldap = $ldap;
         $this->logger = $logger;
-
-        $this->data['domains'] = [];
-        $this->data['errors'] = [];
-        $this->data['operations'] = [];
-        $this->data['operations_by_domain'] = [];
+        $this->reset();
     }
 
     /**
@@ -74,6 +70,17 @@ class LdapToolsDataCollector extends DataCollector
         }
         $this->data['operations'] = $this->addOperationToData(...$this->logger->getOperations());
         $this->data['errors'] = $this->addOperationToData(...$this->logger->getErrors());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reset()
+    {
+        $this->data['domains'] = [];
+        $this->data['errors'] = [];
+        $this->data['operations'] = [];
+        $this->data['operations_by_domain'] = [];
     }
 
     /**
