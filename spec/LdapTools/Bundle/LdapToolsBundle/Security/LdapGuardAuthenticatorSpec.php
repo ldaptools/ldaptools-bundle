@@ -453,4 +453,13 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
 
         $this->getCredentials($this->request)->shouldHaveKeyWithValue('username','foo');
     }
+
+    function it_should_check_whether_the_request_is_supported()
+    {
+        $this->request->request->add([]);
+        $this->supports($this->request)->shouldBeEqualTo(false);
+
+        $this->request->request->add(['_username' => 'foo']);
+        $this->supports($this->request)->shouldBeEqualTo(true);
+    }
 }

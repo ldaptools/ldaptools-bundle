@@ -129,16 +129,24 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
     /**
      * {@inheritdoc}
      */
+    public function supports(Request $request)
+    {
+        return !empty($this->getRequestUsername($request));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getCredentials(Request $request)
     {
+        if (!$this->supports($request)) {
+            return null;
+        }
         $credentials = [
             'username' => $this->getRequestUsername($request),
             'password' => $this->getRequestPassword($request),
             'ldap_domain' => $this->getRequestDomain($request),
         ];
-        if (empty($credentials['username'])) {
-            return null;
-        }
         $request->getSession()->set(Security::LAST_USERNAME, $credentials['username']);
 
         return $credentials;
