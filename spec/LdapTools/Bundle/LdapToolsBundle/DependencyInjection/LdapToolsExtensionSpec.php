@@ -101,7 +101,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
         $container->hasExtension('http://symfony.com/schema/dic/services')->willReturn(false);
         $container->addResource(Argument::type('\Symfony\Component\Config\Resource\ResourceInterface'))->willReturn(true);
 
-        $container->getDefinition('ldap_tools.configuration')->willReturn($configDef);
+        $container->getDefinition('LdapTools\Configuration')->willReturn($configDef);
         $container->getDefinition('ldap_tools.log.logger_chain')->willReturn($loggerDef);
         $container->getDefinition('ldap_tools.security.authentication.form_entry_point')->willReturn($entryDef);
         $entryDef->addArgument(Argument::any())->willReturn($entryDef);

@@ -88,7 +88,7 @@ class LdapToolsExtension extends Extension
             $container->getDefinition('data_collector.ldap_tools')->replaceArgument(0, null);
         }
 
-        $definition = $container->getDefinition('ldap_tools.configuration');
+        $definition = $container->getDefinition('LdapTools\Configuration');
         $definition->addMethodCall('loadFromArray', [$ldapCfg]);
         $definition->addMethodCall('setEventDispatcher', [new Reference('ldap_tools.event_dispatcher')]);
 
