@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.9.0 (2017-12-10)
+------------------
+  * Correct deprecations in Symfony 3.4, 4.0.
+  * Add HTTP basic auth support.
+  * Allow the LDAP Guard to be more easily extended.
+  * Bump composer requirements for Symfony 4.0.
+
 0.8.1 (2017-08-13)
 ------------------
   * Correct a deprecation in the Active Directory Response Code checking.
