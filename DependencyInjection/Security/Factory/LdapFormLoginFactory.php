@@ -12,9 +12,7 @@ namespace LdapTools\Bundle\LdapToolsBundle\DependencyInjection\Security\Factory;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\FormLoginFactory;
-use Symfony\Component\HttpKernel\Kernel;
 
 /**
  * The LDAP form login factory.
@@ -51,7 +49,11 @@ class LdapFormLoginFactory extends FormLoginFactory
     protected function createAuthProvider(ContainerBuilder $container, $id, $config, $userProviderId)
     {
         $provider = 'ldap_tools.security.user.ldap_user_provider.'.$id;
-        $container->setDefinition($provider, new DefinitionDecorator('ldap_tools.security.authentication.ldap_authentication_provider'))
+        $decorator = class_exists('Symfony\Component\DependencyInjection\ChildDefinition') ?
+            'Symfony\Component\DependencyInjection\ChildDefinition' :
+            'Symfony\Component\DependencyInjection\DefinitionDecorator';
+
+        $container->setDefinition($provider, new $decorator('ldap_tools.security.authentication.ldap_authentication_provider'))
             ->replaceArgument(0, $id)
             ->replaceArgument(2, new Reference($userProviderId));
 
