@@ -71,7 +71,7 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
         $this->collect($request, $response);
         $this->getErrors()->shouldBeArray();
         $this->getErrors()->shouldHaveCount(1);
-        $this->getErrors()->shouldHaveLogKeyAndValue('error', 'fail');
+        $this->getErrors()[0]->shouldHaveKeyWithValue('error', 'fail');
     }
 
     function it_should_get_all_operations(Request $request, Response $response)
@@ -104,7 +104,7 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
     function it_should_remove_password_information_from_the_operation(Request $request, Response $response)
     {
         $this->collect($request, $response);
-        $this->getOperations()->shouldHaveLogKeyAndValue('data', [
+        $this->getOperations()[0]->shouldHaveKeyWithValue('data', [
             'DN' => null,
             'Attributes' => print_r([
                 'username' => 'foo',
@@ -125,23 +125,5 @@ class LdapToolsDataCollectorSpec extends ObjectBehavior
         $this->getDomains()->shouldBeEqualTo([]);
         $this->getTime()->shouldBeEqualTo(0);
         $this->getErrors()->shouldBeEqualTo([]);
-    }
-
-    public function getMatchers()
-    {
-        return [
-            'haveLogKeyAndValue' => function($subject, $key, $value) {
-                $exists = false;
-
-                foreach ($subject as $log) {
-                    if (isset($log[$key]) && $log[$key] == $value) {
-                        $exists = true;
-                        break;
-                    }
-                }
-
-                return $exists;
-            },
-        ];
     }
 }

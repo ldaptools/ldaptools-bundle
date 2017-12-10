@@ -75,44 +75,4 @@ class LdapObjectTypeSpec extends ObjectBehavior
     {
         $this->shouldBeAnInstanceOf('\Symfony\Component\Form\AbstractType');
     }
-
-    function it_should_configure_options_correctly()
-    {
-        if (Kernel::VERSION >= 2.7) {
-            $this->configureOptions($this->resolver);
-        } else {
-            $this->setDefaultOptions($this->resolver);
-        }
-
-        $this->shouldHaveResolverParamWithValue($this->resolver, 'ldap_domain', 'foo.bar');
-        $this->shouldHaveResolverParamWithValue($this->resolver, 'ldap_type', 'user');
-        $this->shouldHaveResolverParamWithValue($this->resolver, 'choice_name', 'name');
-        $this->shouldHaveResolverParamWithValue($this->resolver, 'choice_value', 'guid');
-        $this->shouldHaveResolverParamWithValue($this->resolver, 'choices', []);
-        $this->shouldNotHaveResolverParam($this->resolver, 'ldap_attributes');
-
-        if (Kernel::VERSION > '2.7') {
-            $this->shouldNotHaveResolverParam($this->resolver, 'choice_list');
-            $this->shouldHaveResolverParam($this->resolver, 'choice_loader');
-        } else {
-            $this->shouldHaveResolverParam($this->resolver, 'choice_list');
-            $this->shouldNotHaveResolverParam($this->resolver, 'choice_loader');
-        }
-    }
-
-    public function getMatchers()
-    {
-        return [
-            'haveResolverParamWithValue' => function($subject, OptionsResolver $resolver, $param, $value) {
-                $options = $resolver->resolve();
-
-                return isset($options[$param]) && $options[$param] == $value;
-            },
-            'haveResolverParam' => function($subject, OptionsResolver $resolver, $param) {
-                $options = $resolver->resolve();
-
-                return isset($options[$param]);
-            },
-        ];
-    }
 }

@@ -14,8 +14,8 @@ use PhpSpec\ObjectBehavior;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\HttpUtils;
@@ -23,10 +23,11 @@ use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterfa
 
 class LdapFormLoginListenerSpec extends ObjectBehavior
 {
-    function let(AuthenticationManagerInterface $authManager, SessionAuthenticationStrategyInterface $authStrategy, HttpUtils $httpUtils, AuthenticationSuccessHandlerInterface $authSuccess, AuthenticationFailureHandlerInterface $authFailure, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, CsrfTokenManagerInterface $csrfTokenManager, TokenStorageInterface $tokenStorage)
+    function let(AuthenticationManagerInterface $authManager, SessionAuthenticationStrategyInterface $authStrategy, HttpUtils $httpUtils, AuthenticationSuccessHandlerInterface $authSuccess, AuthenticationFailureHandlerInterface $authFailure, LoggerInterface $logger, EventDispatcherInterface $eventDispatcher, CsrfTokenManagerInterface $csrfTokenManager)
     {
+
         $this->beConstructedWith(
-            $tokenStorage,
+            new TokenStorage(),
             $authManager,
             $authStrategy,
             $httpUtils,

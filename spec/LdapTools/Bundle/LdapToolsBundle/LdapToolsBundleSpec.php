@@ -34,27 +34,4 @@ class LdapToolsBundleSpec extends ObjectBehavior
 
         $this->build($container);
     }
-
-    function it_should_register_the_custom_doctrine_types()
-    {
-        $this->shouldHaveDoctrineTypes(['ldap_object','ldap_object_collection']);
-    }
-
-    public function getMatchers()
-    {
-        return [
-            'haveDoctrineTypes' => function($subject, array $types) {
-                $hasTypes = true;
-
-                foreach ($types as $type) {
-                    if (!Type::hasType($type)) {
-                        $hasTypes = false;
-                        break;
-                    }
-                }
-
-                return $hasTypes;
-            },
-        ];
-    }
 }
