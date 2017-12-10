@@ -8,6 +8,7 @@ environment:
     - PHP_VERSION: "5.6"
     - PHP_VERSION: "7.0"
     - PHP_VERSION: "7.1"
+    - PHP_VERSION: "7.2"
 
 install:
   - ps: Invoke-WebRequest "https://raw.githubusercontent.com/ChadSikorra/ps-install-php/master/Install-PHP.ps1" -OutFile "Install-PHP.ps1"
