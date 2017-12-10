@@ -118,9 +118,10 @@ class LdapToolsExtensionSpec extends ObjectBehavior
     function it_should_load_the_configuration($container, $cacheWarmer, $doctrineEvents, $configDef, $entryDef)
     {
         // These are all the definitions that should be processed from the services resource file...
-        $container->setDefinition('ldap_tools.configuration', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
+        $container->setDefinition('LdapTools\Configuration', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.event_dispatcher', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setAlias('ldap_tools.ldap_manager', Argument::type('Symfony\Component\DependencyInjection\Alias'))->shouldBeCalled();
+        $container->setAlias('ldap_tools.configuration', Argument::type('Symfony\Component\DependencyInjection\Alias'))->shouldBeCalled();
         $container->setDefinition('LdapTools\LdapManager', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.log.logger_chain', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
         $container->setDefinition('ldap_tools.log.profiler', Argument::type('Symfony\Component\DependencyInjection\Definition'))->shouldBeCalled();
