@@ -25,13 +25,7 @@
     </parameters>
 
     <services>
-        <service id="LdapTools\Configuration" class="LdapTools\Configuration">
-            <call method="setEventDispatcher">
-                <argument type="service" id="ldap_tools.event_dispatcher"/>
-            </call>
-        </service>
-
-        <service id="ldap_tools.configuration" alias="LdapTools\Configuration" public="true"/>
+        <service id='LdapTools\Configuration' class='LdapTools\Configuration' alias="ldap_tools.configuration" public="true"/>
 
         <service id="ldap_tools.event_dispatcher" class="%ldap_tools.event_dispatcher.class%"/>
 
