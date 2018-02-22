@@ -253,7 +253,7 @@ ldap_tools:
     security:
         guard:
             # This is the entry point/start path route name for the RedirectResponse of the Guard component
-            start_path: 'login'
+            login_path: 'login'
             default_target_path: '/'
             always_use_target_path: false
             target_path_parameter: '_target_path'
