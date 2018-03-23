@@ -26,6 +26,15 @@ class LdapRoleMapperSpec extends ObjectBehavior
 {
     protected $user;
 
+    protected $options = [
+        'roles' => [
+            'ROLE_AWESOME' => ['foo'],
+            'ROLE_ADMIN' => ['291d8444-9d5b-4b0a-a6d7-853408f704d5'],
+            'ROLE_DN' => ['cn=Stuff,dc=example,dc=local'],
+            'ROLE_SID' => ['S-1-5-18'],
+        ],
+    ];
+
     function let(LdapManager $ldap, LdapQueryBuilder $qb, LdapQuery $query, LdapConnection $connection)
     {
         $this->user = new LdapUser();
@@ -35,15 +44,6 @@ class LdapRoleMapperSpec extends ObjectBehavior
             'guid' => '291d8444-9d5b-4b0a-a6d7-853408f704d5',
             'dn' => 'cn=Stuff,dc=example,dc=local',
         ]);
-
-        $options = [
-            'roles' => [
-                'ROLE_AWESOME' => ['foo'],
-                'ROLE_ADMIN' => ['291d8444-9d5b-4b0a-a6d7-853408f704d5'],
-                'ROLE_DN' => ['cn=Stuff,dc=example,dc=local'],
-                'ROLE_SID' => ['S-1-5-18'],
-            ],
-        ];
 
         $groups = new LdapObjectCollection();
         $groups->add(new LdapObject(['name' => 'Foo', 'dn' => 'cn=Foo,dc=example,dc=local']));
@@ -67,7 +67,7 @@ class LdapRoleMapperSpec extends ObjectBehavior
         $ldap->getConnection()->willReturn($connection);
         $connection->getConfig()->willReturn($config);
 
-        $this->beConstructedWith($ldap, $options);
+        $this->beConstructedWith($ldap, $this->options);
     }
 
     function it_is_initializable()
@@ -96,7 +96,7 @@ class LdapRoleMapperSpec extends ObjectBehavior
         $this->setRoles($this->user);
     }
 
-    function it_should_search_recursively_when_the_LDAP_type_is_active_directory($qb, $connection)
+    function it_should_search_recursively_when_the_LDAP_type_is_active_directory($qb)
     {
         $qb->where(Argument::type('LdapTools\Query\Operator\MatchingRule'))->shouldBeCalled();
 
@@ -105,7 +105,7 @@ class LdapRoleMapperSpec extends ObjectBehavior
 
     function it_should_set_the_ldap_type_for_the_role_query($ldap, $qb)
     {
-        $this->beConstructedWith($ldap, ['role_ldap_type' => 'foo']);
+        $this->beConstructedWith($ldap, array_merge($this->options, ['role_ldap_type' => 'foo']));
 
         $qb->from('foo')->shouldBeCalled()->willReturn($qb);
 
@@ -114,12 +114,12 @@ class LdapRoleMapperSpec extends ObjectBehavior
 
     function it_should_set_the_attribute_map_for_the_role_query($ldap, $qb)
     {
-        $this->beConstructedWith($ldap, ['role_attributes' => [
+        $this->beConstructedWith($ldap, array_merge($this->options, ['role_attributes' => [
             'members' => 'members',
             'name' => 'cn',
             'guid' => 'foo',
             'sid' => 'bar'
-        ]]);
+        ]]));
 
         $qb->select(['cn', 'foo', 'bar'])->shouldBeCalled()->willReturn($qb);
 
@@ -128,7 +128,7 @@ class LdapRoleMapperSpec extends ObjectBehavior
 
     function it_should_not_set_a_default_role_if_it_is_set_to_null($ldap, $query)
     {
-        $this->beConstructedWith($ldap, ['default_role' => null]);
+        $this->beConstructedWith($ldap, array_merge($this->options, ['default_role' => null]));
 
         $query->getResult()->willReturn(new LdapObjectCollection(new LdapObject(['name' => 'Test'])));
 
@@ -137,7 +137,7 @@ class LdapRoleMapperSpec extends ObjectBehavior
 
     function it_should_set_the_default_role($ldap)
     {
-        $this->beConstructedWith($ldap, ['default_role' => 'foobar']);
+        $this->beConstructedWith($ldap, array_merge($this->options, ['default_role' => 'foobar']));
 
         $this->setRoles($this->user)->getRoles()->shouldContain('FOOBAR');
     }
