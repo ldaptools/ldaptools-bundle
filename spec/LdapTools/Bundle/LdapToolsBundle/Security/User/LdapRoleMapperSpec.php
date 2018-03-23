@@ -141,4 +141,12 @@ class LdapRoleMapperSpec extends ObjectBehavior
 
         $this->setRoles($this->user)->getRoles()->shouldContain('FOOBAR');
     }
+
+    function it_should_not_query_ldap_if_no_roles_are_defined($ldap, $query)
+    {
+        $this->beConstructedWith($ldap, ['roles' => []]);
+
+        $query->getResult()->shouldNotBeCalled();
+        $this->setRoles($this->user);
+    }
 }
