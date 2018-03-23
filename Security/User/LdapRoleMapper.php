@@ -66,13 +66,17 @@ class LdapRoleMapper
         if ($this->options['default_role']) {
             $roles[] = $this->options['default_role'];
         }
-        $groups = $this->getGroupsForUser($user);
+        
+        if (!empty($this->options['roles'])) {
+            $groups = $this->getGroupsForUser($user);
 
-        foreach ($this->options['roles'] as $role => $roleGroups) {
-            if ($this->hasGroupForRoles($roleGroups, $groups)) {
-                $roles[] = $role;
+            foreach ($this->options['roles'] as $role => $roleGroups) {
+                if ($this->hasGroupForRoles($roleGroups, $groups)) {
+                    $roles[] = $role;
+                }
             }
         }
+
         $user->setRoles($roles);
 
         return $user;
