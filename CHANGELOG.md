@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+0.9.1 (2018-03-23)
+------------------
+  * Do not query LDAP for mapped roles if none are defined.
+
 0.9.0 (2017-12-10)
 ------------------
   * Correct deprecations in Symfony 3.4, 4.0.
