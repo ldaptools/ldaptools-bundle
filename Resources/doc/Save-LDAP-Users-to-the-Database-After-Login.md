@@ -52,6 +52,7 @@ class AppUser implements LdapUserInterface, UserInterface
 
     /**
      * @var array
+     * @ORM\Column(type="array")
      */
     private $roles = [];
     
