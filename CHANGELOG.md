@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+0.9.2 (2018-06-07)
+------------------
+  * Rename the option use_referrer to use_referer to match Symfony.
+
 0.9.1 (2018-03-23)
 ------------------
   * Do not query LDAP for mapped roles if none are defined.
