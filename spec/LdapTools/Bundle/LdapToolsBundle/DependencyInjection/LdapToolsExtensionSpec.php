@@ -148,7 +148,7 @@ class LdapToolsExtensionSpec extends ObjectBehavior
             "default_target_path" => "/",
             "always_use_target_path" => false,
             "target_path_parameter" => "_target_path",
-            "use_referrer" => false,
+            "use_referer" => false,
             "login_path" => '/login',
         ])->shouldBeCalled();
         $container->setParameter("ldap_tools.security.guard.auth_failure", [

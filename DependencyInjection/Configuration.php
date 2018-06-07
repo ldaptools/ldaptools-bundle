@@ -215,7 +215,7 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('default_target_path')->defaultValue('/')->end()
                             ->booleanNode('always_use_target_path')->defaultFalse()->end()
                             ->scalarNode('target_path_parameter')->defaultValue('_target_path')->end()
-                            ->booleanNode('use_referrer')->defaultFalse()->end()
+                            ->booleanNode('use_referer')->defaultFalse()->end()
                             ->scalarNode('failure_path')->defaultNull()->end()
                             ->booleanNode('failure_forward')->defaultFalse()->end()
                             ->scalarNode('failure_path_parameter')->defaultValue('_failure_path')->end()

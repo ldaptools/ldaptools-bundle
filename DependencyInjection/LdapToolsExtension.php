@@ -136,7 +136,7 @@ class LdapToolsExtension extends Extension
             'default_target_path' => $config['default_target_path'],
             'always_use_target_path' => $config['always_use_target_path'],
             'target_path_parameter' => $config['target_path_parameter'],
-            'use_referrer' => $config['use_referrer'],
+            'use_referer' => $config['use_referer'],
             'login_path' => $config['login_path'],
         ]);
         $container->setParameter('ldap_tools.security.guard.auth_failure', [
