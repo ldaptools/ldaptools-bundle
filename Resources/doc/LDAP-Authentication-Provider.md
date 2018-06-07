@@ -257,7 +257,7 @@ ldap_tools:
             default_target_path: '/'
             always_use_target_path: false
             target_path_parameter: '_target_path'
-            use_referrer: false
+            use_referer: false
             failure_path: null
             failure_forward: false
             failure_path_parameter: '_failure_path'

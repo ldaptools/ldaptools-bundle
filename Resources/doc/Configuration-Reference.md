@@ -246,7 +246,7 @@ Refer to: http://symfony.com/doc/current/reference/configuration/security.html#r
 **Default**: `_target_path`
 
  ------------------
-#### use_referrer
+#### use_referer
 
 Refer to: http://symfony.com/doc/current/reference/configuration/security.html#redirecting-after-login
 
