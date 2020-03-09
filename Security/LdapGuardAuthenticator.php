@@ -211,8 +211,8 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
             $token = new UsernamePasswordToken($user, $credentials['password'], 'ldap-tools', $user->getRoles());
             $token->setAttribute('ldap_domain', $credDomain);
             $this->dispatcher->dispatch(
+                new LdapLoginEvent($user, $token),
                 LdapLoginEvent::SUCCESS,
-                new LdapLoginEvent($user, $token)
             );
         } catch (\Exception $e) {
             $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
@@ -236,7 +236,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
             $token,
             $providerKey
         );
-        $this->dispatcher->dispatch(AuthenticationHandlerEvent::SUCCESS, $event);
+        $this->dispatcher->dispatch($event, AuthenticationHandlerEvent::SUCCESS);
 
         return $this->options['http_basic'] ? null : $event->getResponse();
     }
@@ -251,7 +251,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
             $request,
             $exception
         );
-        $this->dispatcher->dispatch(AuthenticationHandlerEvent::FAILURE, $event);
+        $this->dispatcher->dispatch($event, AuthenticationHandlerEvent::FAILURE);
 
         return $this->options['http_basic'] ? null : $event->getResponse();
     }
@@ -267,7 +267,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
             $request,
             $authException
         );
-        $this->dispatcher->dispatch(AuthenticationHandlerEvent::START, $event);
+        $this->dispatcher->dispatch($event, AuthenticationHandlerEvent::START);
 
         return $event->getResponse();
     }

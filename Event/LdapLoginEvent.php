@@ -11,7 +11,7 @@
 namespace LdapTools\Bundle\LdapToolsBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  *
  * @author Chad Sikorra <Chad.Sikorra@gmail.com>
  */
-class LdapLoginEvent extends Event
+class LdapLoginEvent extends EventDispatcher
 {
     /**
      * The event name when the login was successful
