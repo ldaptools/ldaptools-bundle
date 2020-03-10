@@ -235,7 +235,7 @@ objects:
 # app/config/config.yml
 ldap_tools:
     general:
-        schema_folder: "%kernel.root_dir%/Resources/schema"
+        schema_folder: "%kernel.project_dir%/app/Resources/schema"
     security:
         ldap_object_type: 'SymfonyUser'
 ```
