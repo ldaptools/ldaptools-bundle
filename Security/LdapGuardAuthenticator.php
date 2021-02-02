@@ -212,7 +212,7 @@ class LdapGuardAuthenticator extends AbstractGuardAuthenticator
             $token->setAttribute('ldap_domain', $credDomain);
             $this->dispatcher->dispatch(
                 new LdapLoginEvent($user, $token),
-                LdapLoginEvent::SUCCESS,
+                LdapLoginEvent::SUCCESS
             );
         } catch (\Exception $e) {
             $this->hideOrThrow($e, $this->options['hide_user_not_found_exceptions']);
