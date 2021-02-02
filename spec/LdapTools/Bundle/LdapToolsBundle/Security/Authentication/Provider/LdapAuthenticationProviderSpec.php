@@ -211,7 +211,7 @@ class LdapAuthenticationProviderSpec extends ObjectBehavior
     
     function it_should_call_a_login_success_event($token, $dispatcher)
     {
-        $dispatcher->dispatch('ldap_tools_bundle.login.success', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent'))->shouldBeCalled();
+        $dispatcher->dispatch(Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\LdapLoginEvent'), 'ldap_tools_bundle.login.success')->shouldBeCalled();
         $this->authenticate($token);
     }
 

@@ -255,7 +255,7 @@ class LdapObjectSubscriber implements EventSubscriber
      */
     protected function getObjectFromLifeCycleArgs(LifecycleEventArgs $args)
     {
-        $rc = new \ReflectionClass('Doctrine\Common\Persistence\Event\LifecycleEventArgs');
+        $rc = new \ReflectionClass('Doctrine\ORM\Event\LifecycleEventArgs');
 
         if ($rc->hasMethod('getObject')) {
             return $args->getObject();
@@ -272,7 +272,7 @@ class LdapObjectSubscriber implements EventSubscriber
      */
     protected function getOmFromLifeCycleArgs(LifecycleEventArgs $args)
     {
-        $rc = new \ReflectionClass('Doctrine\Common\Persistence\Event\LifecycleEventArgs');
+        $rc = new \ReflectionClass('Doctrine\ORM\Event\LifecycleEventArgs');
 
         if ($rc->hasMethod('getObjectManager')) {
             return $args->getObjectManager();

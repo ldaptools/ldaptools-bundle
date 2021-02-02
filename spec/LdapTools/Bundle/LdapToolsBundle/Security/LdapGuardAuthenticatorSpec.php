@@ -342,26 +342,26 @@ class LdapGuardAuthenticatorSpec extends ObjectBehavior
         $connection->execute(new AuthenticationOperation('foo', 'bar'))->shouldBeCalled()->willReturn(new AuthenticationResponse(true));
         $this->checkCredentials($credentials, $user)->shouldReturn(true);
 
-        $dispatcher->dispatch('ldap_tools_bundle.login.success', new LdapLoginEvent($user, $token))->shouldBeCalled();
+        $dispatcher->dispatch(new LdapLoginEvent($user, $token), 'ldap_tools_bundle.login.success')->shouldBeCalled();
     }
 
     function it_should_call_an_auth_success_handler_event(Request $request, $dispatcher, TokenInterface $token)
     {
-        $dispatcher->dispatch('ldap_tools_bundle.guard.login.success', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'))->shouldBeCalled();
+        $dispatcher->dispatch(Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'), 'ldap_tools_bundle.guard.login.success')->shouldBeCalled();
 
         $this->onAuthenticationSuccess($request, $token, 'foo');
     }
 
     function it_should_call_an_auth_failure_handler_event(Request $request, $dispatcher)
     {
-        $dispatcher->dispatch('ldap_tools_bundle.guard.login.failure', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'))->shouldBeCalled();
+        $dispatcher->dispatch(Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'), 'ldap_tools_bundle.guard.login.failure')->shouldBeCalled();
 
         $this->onAuthenticationFailure($request, new AuthenticationException('foo'));
     }
 
     function it_should_call_an_auth_start_event(Request $request, $dispatcher)
     {
-        $dispatcher->dispatch('ldap_tools_bundle.guard.login.start', Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'))->shouldBeCalled();
+        $dispatcher->dispatch(Argument::type('LdapTools\Bundle\LdapToolsBundle\Event\AuthenticationHandlerEvent'), 'ldap_tools_bundle.guard.login.start')->shouldBeCalled();
 
         $this->start($request, new AuthenticationException('foo'));
     }
