@@ -1,5 +1,5 @@
 {
-    "name": "ldaptools/ldaptools-bundle",
+    "name": "nuxnik/ldaptools-bundle",
     "type": "symfony-bundle",
     "description": "Provides easy LDAP integration for Symfony via LdapTools.",
     "keywords": [
