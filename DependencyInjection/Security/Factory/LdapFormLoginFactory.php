@@ -30,7 +30,7 @@ class LdapFormLoginFactory extends FormLoginFactory
     /**
      * {@inheritdoc}
      */
-    public function getKey()
+    public function getKey(): string
     {
         return 'ldap-tools-form';
     }
@@ -38,7 +38,7 @@ class LdapFormLoginFactory extends FormLoginFactory
     /**
      * {@inheritdoc}
      */
-    protected function getListenerId()
+    protected function getListenerId(): string
     {
         return 'ldap_tools.security.firewall.ldap_form_login_listener';
     }
@@ -46,7 +46,7 @@ class LdapFormLoginFactory extends FormLoginFactory
     /**
      * {@inheritdoc}
      */
-    protected function createAuthProvider(ContainerBuilder $container, $id, $config, $userProviderId)
+    protected function createAuthProvider(ContainerBuilder $container, $id, $config, $userProviderId): string
     {
         $provider = 'ldap_tools.security.user.ldap_user_provider.'.$id;
         $decorator = class_exists('Symfony\Component\DependencyInjection\ChildDefinition') ?
