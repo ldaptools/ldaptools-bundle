@@ -19,15 +19,15 @@
     ],
     "require": {
         "ldaptools/ldaptools": ">=0.25",
-        "symfony/framework-bundle": "~2.7|~3.0|~4.0"
+        "symfony/framework-bundle": "~2.7|~3.0|~4.0|~5.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "~1.0",
         "phpspec/phpspec": "~3.0",
         "akeneo/phpspec-skip-example-extension": "~2.0",
         "doctrine/orm": "~2.4",
-        "symfony/form": "~2.7|~3.0|~4.0",
-        "symfony/security-bundle": "~2.7|~3.0|~4.0"
+        "symfony/form": "~2.7|~3.0|~4.0|~5.0",
+        "symfony/security-bundle": "~2.7|~3.0|~4.0|~5.0"
     },
     "suggest": {
         "doctrine/doctrine-bundle": "For LDAP object type integration in Doctrine."

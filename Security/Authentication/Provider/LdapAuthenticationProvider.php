@@ -156,7 +156,7 @@ class LdapAuthenticationProvider implements AuthenticationProviderInterface
 
             throw new BadCredentialsException($response->getErrorMessage(), $response->getErrorCode());
         }
-        $this->dispatcher->dispatch(LdapLoginEvent::SUCCESS, new LdapLoginEvent($user, $token));
+        $this->dispatcher->dispatch(new LdapLoginEvent($user, $token), LdapLoginEvent::SUCCESS);
 
         $newToken = new UsernamePasswordToken($user, null, $this->providerKey, $user->getRoles());
         $newToken->setAttributes($token->getAttributes());

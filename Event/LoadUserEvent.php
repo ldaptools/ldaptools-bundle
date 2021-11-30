@@ -12,7 +12,7 @@ namespace LdapTools\Bundle\LdapToolsBundle\Event;
 
 use LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser;
 use LdapTools\Object\LdapObject;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  *
  * @author Chad Sikorra <Chad.Sikorra@gmail.com>
  */
-class LoadUserEvent extends Event
+class LoadUserEvent extends EventDispatcher
 {
     /**
      * The event name that happens before a user is loaded from the user provider.

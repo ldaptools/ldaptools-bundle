@@ -72,8 +72,8 @@ class LdapUserProviderSpec extends ObjectBehavior
 
     function it_should_load_by_username($dispatcher)
     {
-        $dispatcher->dispatch(LoadUserEvent::BEFORE, Argument::type('\LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent'))->shouldBeCalledTimes(1);
-        $dispatcher->dispatch(LoadUserEvent::AFTER, Argument::type('\LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent'))->shouldBeCalledTimes(1);
+        $dispatcher->dispatch(Argument::type('\LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent'), LoadUserEvent::BEFORE)->shouldBeCalledTimes(1);
+        $dispatcher->dispatch(Argument::type('\LdapTools\Bundle\LdapToolsBundle\Event\LoadUserEvent'), LoadUserEvent::AFTER)->shouldBeCalledTimes(1);
 
         $this->loadUserByUsername('foo')->shouldBeAnInstanceOf('\LdapTools\Bundle\LdapToolsBundle\Security\User\LdapUser');
     }
