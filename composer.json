@@ -41,7 +41,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "https://github.com/nuxnik/ldaptools-bundle.git"
+            "url": "https://github.com/passbolt/ldaptools.git"
         }
     ]
 }
