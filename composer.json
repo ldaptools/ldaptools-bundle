@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "ldaptools/ldaptools": ">=0.25",
+        "ldaptools/ldaptools": "dev-feature/PB-18645-php8",
         "symfony/framework-bundle": "~2.7|~3.0|~4.0"
     },
     "require-dev": {
